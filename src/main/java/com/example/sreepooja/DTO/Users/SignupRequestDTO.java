@@ -1,6 +1,8 @@
 package com.example.sreepooja.DTO.Users;
 
 
+import org.springframework.cglib.core.Local;
+
 import java.time.LocalDate;
 
 public class SignupRequestDTO {
@@ -8,6 +10,7 @@ public class SignupRequestDTO {
     private String firstName;
     private String lastName;
     private String mobileNo;
+    private LocalDate dob;
     private String otp;
     private String email;
 
@@ -31,4 +34,7 @@ public class SignupRequestDTO {
         return email;
     }
 
+    public LocalDate getDob() {
+        return dob;
+    }
 }
