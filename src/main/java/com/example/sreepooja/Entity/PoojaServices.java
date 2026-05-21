@@ -52,6 +52,9 @@ public class PoojaServices {
     @Lob
     private String ritualImportance;
 
+    @Lob
+    private String benefits;
+
     private Integer durationMinutes;
 
     @Enumerated(EnumType.STRING)
