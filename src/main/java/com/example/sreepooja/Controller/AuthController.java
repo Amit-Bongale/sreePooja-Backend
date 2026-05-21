@@ -83,12 +83,32 @@ public class AuthController {
 
         user.getRoles().add(userRole);
 
-        userRepository.save(user);
+        Users user1 = userRepository.save(user);
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message" , "user registered successfully"));
+        CustomUserDetails userDetails =
+                (CustomUserDetails) userDetailsService
+                        .loadUserByUsername(user1.getMobileNo());
 
+        // Extract roles
+        Set<String> roles = user.getRoles()
+                .stream()
+                .map(r -> r.getRole().name())
+                .collect(Collectors.toSet());
+
+        // Generate JWT
+        String token = jwtUtil.generateToken(
+                userDetails,
+                roles
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "user registered successfully",
+                        "token", token,
+                        "userId", user1.getId()
+                )
+        );
     }
-
 
     // send otp for login
     @PostMapping("/request-otp")
