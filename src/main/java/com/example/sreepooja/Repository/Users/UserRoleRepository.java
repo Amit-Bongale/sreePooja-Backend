@@ -1,0 +1,51 @@
+package com.example.sreepooja.Repository.Users;
+
+
+
+
+import com.example.sreepooja.Entity.UserRole;
+import com.example.sreepooja.Entity.Users;
+import com.example.sreepooja.Enum.UserRoles;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+@Repository
+public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM UserRole ur WHERE ur.role = :role")
+    void deleteByRole(@Param("role") UserRoles role);
+
+    @Transactional
+    @Modifying
+    @Query("""
+        DELETE FROM UserRole ur
+        WHERE ur.user.id IN :userIds
+          AND ur.role = :role
+    """)
+    void deleteByUserIdsAndRole(
+            @Param("userIds") Set<Long> userIds,
+            @Param("role") UserRoles role
+    );
+
+    boolean existsByUserAndRole(Users user, UserRoles role);
+
+
+    Optional<UserRole> findByUserAndRole(Users user, UserRoles role);
+
+
+    @Modifying
+    @Query("DELETE FROM UserRole ur WHERE ur.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
+
+    List<UserRole> findByUserId(Long id);
+}
