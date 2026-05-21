@@ -1,0 +1,93 @@
+package com.example.sreepooja.Entity;
+
+import com.example.sreepooja.Enum.ServiceStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(
+        name = "pooja_services",
+        indexes = {
+                @Index(name = "idx_service_slug", columnList = "slug"),
+                @Index(name = "idx_service_name", columnList = "serviceName")
+        }
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PoojaServices {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String serviceCode;
+
+    @Column(nullable = false)
+    private String serviceName;
+
+    @Column(unique = true)
+    private String slug;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private ServiceCategory category;
+
+    @Column(length = 500)
+    private String shortDescription;
+
+    @Lob
+    private String fullDescription;
+
+    @Lob
+    private String ritualImportance;
+
+    private Integer durationMinutes;
+
+    @Enumerated(EnumType.STRING)
+    private ServiceStatus status;
+
+    private Boolean featured = false;
+
+    private Boolean cancellationAllowed = true;
+
+    private Boolean refundAllowed = true;
+
+    private String metaTitle;
+
+    @Column(length = 1000)
+    private String metaDescription;
+
+    private String metaKeywords;
+
+    private String thumbnailImage;
+
+    private String bannerImage;
+
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "poojaService",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true
+    )
+    private List<ServicePackage> packages = new ArrayList<>();
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+}
+
