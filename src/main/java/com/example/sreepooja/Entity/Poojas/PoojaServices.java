@@ -1,6 +1,6 @@
-package com.example.sreepooja.Entity;
+package com.example.sreepooja.Entity.Poojas;
 
-import com.example.sreepooja.Enum.ServiceStatus;
+import com.example.sreepooja.Enum.Poojas.ServiceStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -87,10 +87,34 @@ public class PoojaServices {
     )
     private List<ServicePackage> packages = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "poojaService",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ServiceLanguageMapping> languages = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "poojaService",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ServiceCommunityMapping> communities = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "poojaService",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ServiceCityMapping> locations = new ArrayList<>();
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private Boolean deleted = false;
 }
 
