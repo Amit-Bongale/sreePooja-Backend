@@ -11,9 +11,6 @@ import java.util.List;
 @Data
 public class CreatePoojaServiceRequest {
 
-    @NotBlank(message = "Service code is required")
-    private String serviceCode;
-
     @NotBlank(message = "Service name is required")
     private String serviceName;
 
@@ -26,8 +23,6 @@ public class CreatePoojaServiceRequest {
     private String shortDescription;
 
     private String fullDescription;
-
-    private String ritualImportance;
 
     private String benefits;
 

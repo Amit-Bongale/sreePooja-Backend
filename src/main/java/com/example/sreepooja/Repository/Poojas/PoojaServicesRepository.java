@@ -19,8 +19,6 @@ public interface PoojaServicesRepository extends JpaRepository<PoojaServices, Lo
 
     List<PoojaServices> findByStatusAndDeletedFalse(ServiceStatus status);
 
-    boolean existsByServiceCode(String serviceCode);
-
     boolean existsBySlug(String slug);
 
 
@@ -69,20 +67,45 @@ public interface PoojaServicesRepository extends JpaRepository<PoojaServices, Lo
     // FILTER BY CITY + LANGUAGE + COMMUNITY
 
     @Query("""
-            SELECT DISTINCT ps
-            FROM PoojaServices ps
-            JOIN ps.locations loc
-            JOIN ps.languages lang
-            JOIN ps.communities comm
-            WHERE (:cityId IS NULL OR loc.city.id = :cityId)
-            AND (:languageId IS NULL OR lang.language.id = :languageId)
-            AND (:communityId IS NULL OR comm.community.id = :communityId)
-            AND ps.deleted = false
-            """)
-    List<PoojaServices> findServicesByFilters(
+SELECT DISTINCT ps
+FROM PoojaServices ps
+LEFT JOIN ps.locations loc
+LEFT JOIN ps.languages lang
+LEFT JOIN ps.communities comm
+
+WHERE
+(:categorySlug IS NULL
+    OR ps.category.slug = :categorySlug)
+
+AND
+(:cityId IS NULL
+    OR loc.city.id = :cityId)
+
+AND
+(:languageId IS NULL
+    OR lang.language.id = :languageId)
+
+AND
+(:communityId IS NULL
+    OR comm.community.id = :communityId)
+
+AND
+(:search IS NULL
+    OR LOWER(ps.serviceName)
+       LIKE LOWER(CONCAT('%', :search, '%')))
+
+AND ps.deleted = false
+""")
+    List<PoojaServices> filterServices(
+            @Param("categorySlug") String categorySlug,
+
             @Param("cityId") Long cityId,
+
             @Param("languageId") Long languageId,
-            @Param("communityId") Long communityId
+
+            @Param("communityId") Long communityId,
+
+            @Param("search") String search
     );
 
 }

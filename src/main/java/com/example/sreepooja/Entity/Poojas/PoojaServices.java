@@ -30,9 +30,6 @@ public class PoojaServices {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String serviceCode;
-
     @Column(nullable = false)
     private String serviceName;
 
@@ -50,9 +47,6 @@ public class PoojaServices {
     private String fullDescription;
 
     @Lob
-    private String ritualImportance;
-
-    @Lob
     private String benefits;
 
     private Integer durationMinutes;
@@ -60,10 +54,13 @@ public class PoojaServices {
     @Enumerated(EnumType.STRING)
     private ServiceStatus status;
 
+    @Builder.Default
     private Boolean featured = false;
 
+    @Builder.Default
     private Boolean cancellationAllowed = true;
 
+    @Builder.Default
     private Boolean refundAllowed = true;
 
     private String metaTitle;
@@ -114,6 +111,7 @@ public class PoojaServices {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean deleted = false;
 }

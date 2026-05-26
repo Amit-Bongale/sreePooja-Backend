@@ -69,11 +69,13 @@ public class GlobalExceptionHandler {
             return handleNotFound((ResourceNotFoundException) ex);
         }
 
+        ex.printStackTrace();
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ApiErrorResponse(
                     500,
-                    "Internal server error"
+                    ex.getMessage()
+                    //"Internal server error"
             ));
     }
 

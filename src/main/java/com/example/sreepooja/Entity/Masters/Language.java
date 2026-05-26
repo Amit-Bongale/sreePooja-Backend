@@ -1,16 +1,16 @@
-package com.example.sreepooja.Entity;
+package com.example.sreepooja.Entity.Masters;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "communities")
+@Table(name = "languages")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Community {
+public class Language {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,5 +19,6 @@ public class Community {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Builder.Default
     private Boolean active = true;
 }

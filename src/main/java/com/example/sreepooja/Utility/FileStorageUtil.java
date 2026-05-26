@@ -27,12 +27,15 @@ public class FileStorageUtil {
             Files.createDirectories(directory);
         }
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String originalFileName = file.getOriginalFilename()
+                .replaceAll("\\s+", "_");
+
+        String fileName = UUID.randomUUID() + "_" + originalFileName;
         Path filePath = directory.resolve(fileName);
 
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return filePath.toString();
+        return filePath.toString().replace("\\", "/");
     }
 
     

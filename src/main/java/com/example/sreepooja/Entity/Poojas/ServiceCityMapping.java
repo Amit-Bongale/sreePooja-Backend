@@ -1,6 +1,6 @@
 package com.example.sreepooja.Entity.Poojas;
 
-import com.example.sreepooja.Entity.City;
+import com.example.sreepooja.Entity.Masters.City;
 import jakarta.persistence.*;
 import lombok.*;
 

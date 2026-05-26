@@ -30,6 +30,9 @@ public class ServicePackage {
     @Column(nullable = false)
     private PackageType packageType;
 
+    @Column
+    private String shortDescription;
+
     @Lob
     private String includedItems;
 
@@ -41,6 +44,7 @@ public class ServicePackage {
 
     private Integer durationMinutes;
 
+    @Builder.Default
     private Boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

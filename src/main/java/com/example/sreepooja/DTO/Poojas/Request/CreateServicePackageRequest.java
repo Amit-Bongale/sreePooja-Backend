@@ -13,6 +13,9 @@ public class CreateServicePackageRequest {
     @NotNull(message = "Package type is required")
     private PackageType packageType;
 
+    @NotNull(message = "Description is required")
+    private String shortDescription;
+
     private String includedItems;
 
     @NotNull(message = "Price is required")

@@ -1,6 +1,6 @@
 package com.example.sreepooja.Entity.Poojas;
 
-import com.example.sreepooja.Entity.Community;
+import com.example.sreepooja.Entity.Masters.Community;
 import jakarta.persistence.*;
 import lombok.*;
 

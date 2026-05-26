@@ -1,11 +1,7 @@
 package com.example.sreepooja.Entity.Poojas;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(
@@ -32,16 +28,10 @@ public class ServiceCategory {
     @Column(unique = true)
     private String slug;
 
+    @Builder.Default
     private Boolean active = true;
 
-    @JsonIgnore
     @Builder.Default
-    @OneToMany(
-            mappedBy = "category",
-            fetch = FetchType.LAZY
-    )
-    private List<PoojaServices> services = new ArrayList<>();
-
     @Column(nullable = false)
     private Boolean deleted = false;
 }
