@@ -179,7 +179,7 @@ public class UsersService {
     public void updateUser(Long id, UpdateUserDTO request){
 
         Users user = usersRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
 
         if(request.getRoles().isEmpty()){
             throw new BadRequestException("there must be least 1 role");

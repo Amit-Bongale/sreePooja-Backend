@@ -1,61 +1,103 @@
 package com.example.sreepooja.Utility;
 
+import com.example.sreepooja.ExceptionHandlers.FileStorageException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.UUID;
 
 @Component
 public class FileStorageUtil {
 
-    private static final String BASE_PATH = "uploads";
+    @Value("${app.upload.base-path}")
+    private String basePath;
 
-    public String saveFile(String folderName, String subFolder, MultipartFile file)
-            throws IOException {
+    public String saveFile(String folder, MultipartFile file) {
 
-        if (file == null || file.isEmpty()) return null;
+        try {
 
-        String dirPath = BASE_PATH + "/" + folderName + "/" + subFolder;
-        Path directory = Paths.get(dirPath);
+            Path uploadDirectory = Paths.get(basePath, folder);
 
-        if (!Files.exists(directory)) {
-            Files.createDirectories(directory);
+            if (!Files.exists(uploadDirectory)) {
+                Files.createDirectories(uploadDirectory);
+            }
+
+            String extension =
+                    getFileExtension(file.getOriginalFilename());
+
+            String fileName =
+                    System.currentTimeMillis()
+                            + "_"
+                            + UUID.randomUUID()
+                            .toString()
+                            .replace("-", "")
+                            + "."
+                            + extension;
+
+            Path targetPath =
+                    uploadDirectory.resolve(fileName);
+
+            Files.copy(
+                    file.getInputStream(),
+                    targetPath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            return "/uploads/"
+                    + folder
+                    + "/"
+                    + fileName;
+
+        } catch (IOException ex) {
+
+            throw new FileStorageException(
+                    "Failed to store file",
+                    ex
+            );
         }
-
-        String originalFileName = file.getOriginalFilename()
-                .replaceAll("\\s+", "_");
-
-        String fileName = UUID.randomUUID() + "_" + originalFileName;
-        Path filePath = directory.resolve(fileName);
-
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        return filePath.toString().replace("\\", "/");
     }
 
-    
-    public void deleteFile(String filePath) {
+    public void deleteFile(String fileUrl) {
 
-        if (filePath == null || filePath.isBlank()) {
+        if (fileUrl == null || fileUrl.isBlank()) {
             return;
         }
 
         try {
-            Path path = Paths.get(filePath);
 
-            if (Files.exists(path)) {
-                Files.delete(path);
+            String relativePath =
+                    fileUrl.replace("/uploads/", "");
+
+            Path filePath =
+                    Paths.get(basePath, relativePath);
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete file: " + filePath, e);
+        } catch (IOException ex) {
+
+            throw new FileStorageException(
+                    "Failed to delete file : " + fileUrl,
+                    ex
+            );
         }
     }
 
+    private String getFileExtension(
+            String originalFileName) {
 
+        if (originalFileName == null
+                || !originalFileName.contains(".")) {
+
+            return "";
+        }
+
+        return originalFileName.substring(
+                originalFileName.lastIndexOf(".") + 1
+        );
+    }
 }

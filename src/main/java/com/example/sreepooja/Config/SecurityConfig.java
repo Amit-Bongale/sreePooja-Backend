@@ -35,7 +35,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers( "/auth/**" ).permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/pooja-services/**").permitAll()
+                        .requestMatchers("/pooja-services/**").permitAll()
+                        .requestMatchers("/admin/pooja-services/**").permitAll()
+                        .requestMatchers("/admin/masters/**").permitAll()
+                        .requestMatchers("/masters/**").permitAll()
+                        .requestMatchers("/admin/service-categories/**").permitAll()
+                        .requestMatchers("/files/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

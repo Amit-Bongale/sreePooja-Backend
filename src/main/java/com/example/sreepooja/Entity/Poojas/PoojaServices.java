@@ -110,9 +110,5 @@ public class PoojaServices {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean deleted = false;
 }
 

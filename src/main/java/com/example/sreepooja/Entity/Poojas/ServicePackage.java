@@ -1,6 +1,7 @@
 package com.example.sreepooja.Entity.Poojas;
 
 import com.example.sreepooja.Enum.Poojas.PackageType;
+import com.example.sreepooja.Enum.Poojas.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,8 +45,8 @@ public class ServicePackage {
 
     private Integer durationMinutes;
 
-    @Builder.Default
-    private Boolean active = true;
+    @Enumerated(EnumType.STRING)
+    private ServiceStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)

@@ -17,7 +17,7 @@ public class Language {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name;
+    private String languageName;
 
     @Builder.Default
     private Boolean active = true;

@@ -7,29 +7,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "cities")
+@Table(name = "states")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class City {
+public class State {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String cityName;
+    @Column(nullable = false, unique = true)
+    private String stateName;
 
     @Builder.Default
     private Boolean active = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_id", nullable = false)
-    private State state;
-
-    @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "state", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<CityPincode> pincodes = new ArrayList<>();
+    private List<City> cities = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 package com.example.sreepooja.Entity.Poojas;
 
+import com.example.sreepooja.Enum.Poojas.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,16 +23,12 @@ public class ServiceCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String categoryName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String slug;
 
-    @Builder.Default
-    private Boolean active = true;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean deleted = false;
+    @Enumerated(EnumType.STRING)
+    private ServiceStatus status;
 }

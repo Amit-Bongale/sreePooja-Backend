@@ -1,26 +1,38 @@
 package com.example.sreepooja.Service.Poojas.Impl;
 
-import com.example.sreepooja.DTO.Poojas.Request.CreatePoojaServiceRequest;
-import com.example.sreepooja.DTO.Poojas.Request.CreateServicePackageRequest;
-import com.example.sreepooja.DTO.Poojas.Response.*;
+import com.example.sreepooja.DTO.Request.Poojas.CreateCategoryRequest;
+import com.example.sreepooja.DTO.Request.Poojas.CreatePoojaServiceRequest;
+import com.example.sreepooja.DTO.Request.Poojas.CreateServicePackageRequest;
+import com.example.sreepooja.DTO.Response.Poojas.CategoryResponse;
+import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceCardResponse;
+import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceDetailsResponse;
+import com.example.sreepooja.DTO.Response.Poojas.ServicePackageResponse;
 import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Entity.Masters.Language;
 import com.example.sreepooja.Entity.Poojas.*;
 import com.example.sreepooja.Enum.Poojas.PackageType;
-import com.example.sreepooja.Repository.CityRepository;
-import com.example.sreepooja.Repository.CommunityRepository;
-import com.example.sreepooja.Repository.LanguageRepository;
+import com.example.sreepooja.Enum.Poojas.ServiceStatus;
+import com.example.sreepooja.ExceptionHandlers.DuplicateResourceException;
+import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
+import com.example.sreepooja.Repository.Masters.CityRepository;
+import com.example.sreepooja.Repository.Masters.CommunityRepository;
+import com.example.sreepooja.Repository.Masters.LanguageRepository;
 import com.example.sreepooja.Repository.Poojas.PoojaServicesRepository;
 import com.example.sreepooja.Repository.Poojas.ServiceCategoryRepository;
+import com.example.sreepooja.Service.File.FileService;
 import com.example.sreepooja.Service.Poojas.PoojaServicesService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,19 +43,22 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
     private final LanguageRepository languageRepository;
     private final CommunityRepository communityRepository;
     private final CityRepository cityRepository;
+    private final FileService fileService;
 
     @Override
-    public String createPoojaService(CreatePoojaServiceRequest request) {
+    @Transactional
+    public String createPoojaService(
+            CreatePoojaServiceRequest request
+    ) {
 
         if (poojaServicesRepository.existsBySlug(request.getSlug())) {
-            throw new RuntimeException("Slug already exists");
+            throw new DuplicateResourceException("Slug already exists");
         }
 
         ServiceCategory category = serviceCategoryRepository
-                .findByIdAndDeletedFalse(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-
+                .findBySlug(request.getCategorySlug())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Category not found"));
 
         PoojaServices poojaService = PoojaServices.builder()
                 .serviceName(request.getServiceName())
@@ -71,16 +86,25 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         if (request.getPackages() != null) {
 
-            for (CreateServicePackageRequest packageRequest : request.getPackages()) {
+            for (CreateServicePackageRequest packageRequest
+                    : request.getPackages()) {
 
                 ServicePackage servicePackage = ServicePackage.builder()
                         .packageType(packageRequest.getPackageType())
-                        .shortDescription(packageRequest.getShortDescription())
-                        .includedItems(packageRequest.getIncludedItems())
+                        .shortDescription(
+                                packageRequest.getShortDescription()
+                        )
+                        .includedItems(
+                                packageRequest.getIncludedItems()
+                        )
                         .price(packageRequest.getPrice())
-                        .advancePercentage(packageRequest.getAdvancePercentage())
-                        .durationMinutes(packageRequest.getDurationMinutes())
-                        .active(packageRequest.getActive())
+                        .advancePercentage(
+                                packageRequest.getAdvancePercentage()
+                        )
+                        .durationMinutes(
+                                packageRequest.getDurationMinutes()
+                        )
+                        .status(ServiceStatus.ACTIVE)
                         .poojaService(poojaService)
                         .build();
 
@@ -93,19 +117,28 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         // LANGUAGES
 
-        List<ServiceLanguageMapping> languageMappings = new ArrayList<>();
+        List<ServiceLanguageMapping> languageMappings =
+                new ArrayList<>();
 
         if (request.getLanguageIds() != null) {
 
-            for (Long languageId : request.getLanguageIds()) {
+            Set<Long> uniqueLanguageIds =
+                    new HashSet<>(request.getLanguageIds());
 
-                Language language = languageRepository.findById(languageId)
-                        .orElseThrow(() -> new RuntimeException("Language not found"));
+            for (Long languageId : uniqueLanguageIds) {
 
-                ServiceLanguageMapping mapping = ServiceLanguageMapping.builder()
-                        .poojaService(poojaService)
-                        .language(language)
-                        .build();
+                Language language = languageRepository
+                        .findByIdAndActiveTrue(languageId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Language not found"
+                                ));
+
+                ServiceLanguageMapping mapping =
+                        ServiceLanguageMapping.builder()
+                                .poojaService(poojaService)
+                                .language(language)
+                                .build();
 
                 languageMappings.add(mapping);
             }
@@ -116,19 +149,28 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         // COMMUNITIES
 
-        List<ServiceCommunityMapping> communityMappings = new ArrayList<>();
+        List<ServiceCommunityMapping> communityMappings =
+                new ArrayList<>();
 
         if (request.getCommunityIds() != null) {
 
-            for (Long communityId : request.getCommunityIds()) {
+            Set<Long> uniqueCommunityIds =
+                    new HashSet<>(request.getCommunityIds());
 
-                Community community = communityRepository.findById(communityId)
-                        .orElseThrow(() -> new RuntimeException("Community not found"));
+            for (Long communityId : uniqueCommunityIds) {
 
-                ServiceCommunityMapping mapping = ServiceCommunityMapping.builder()
-                        .poojaService(poojaService)
-                        .community(community)
-                        .build();
+                Community community = communityRepository
+                        .findByIdAndActiveTrue(communityId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                ));
+
+                ServiceCommunityMapping mapping =
+                        ServiceCommunityMapping.builder()
+                                .poojaService(poojaService)
+                                .community(community)
+                                .build();
 
                 communityMappings.add(mapping);
             }
@@ -139,19 +181,28 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         // CITIES
 
-        List<ServiceCityMapping> cityMappings = new ArrayList<>();
+        List<ServiceCityMapping> cityMappings =
+                new ArrayList<>();
 
         if (request.getCityIds() != null) {
 
-            for (Long cityId : request.getCityIds()) {
+            Set<Long> uniqueCityIds =
+                    new HashSet<>(request.getCityIds());
 
-                City city = cityRepository.findById(cityId)
-                        .orElseThrow(() -> new RuntimeException("City not found"));
+            for (Long cityId : uniqueCityIds) {
 
-                ServiceCityMapping mapping = ServiceCityMapping.builder()
-                        .poojaService(poojaService)
-                        .city(city)
-                        .build();
+                City city = cityRepository
+                        .findByIdAndActiveTrue(cityId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "City not found"
+                                ));
+
+                ServiceCityMapping mapping =
+                        ServiceCityMapping.builder()
+                                .poojaService(poojaService)
+                                .city(city)
+                                .build();
 
                 cityMappings.add(mapping);
             }
@@ -159,63 +210,61 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         poojaService.setLocations(cityMappings);
 
-
-
         poojaServicesRepository.save(poojaService);
 
         return "Pooja service created successfully";
     }
 
     @Override
-    public List<CategoryResponse> getAllCategories() {
+    public List<CategoryResponse> getAllCategoriesForAdmin() {
 
         List<ServiceCategory> categories =
-                serviceCategoryRepository.findByDeletedFalse();
+                serviceCategoryRepository.findAll();
 
         return categories.stream()
                 .map(category -> CategoryResponse.builder()
                         .id(category.getId())
                         .categoryName(category.getCategoryName())
                         .slug(category.getSlug())
+                        .status(category.getStatus())
                         .build())
                 .toList();
     }
 
     @Override
-    public List<LanguageResponse> getAllLanguages() {
+    public CategoryResponse
+    getCategoryDetailsForAdmin(String slug) {
 
-        return languageRepository.findAll()
-                .stream()
-                .filter(Language::getActive)
-                .map(language -> LanguageResponse.builder()
-                        .id(language.getId())
-                        .name(language.getName())
-                        .build())
-                .toList();
+        ServiceCategory category =
+                serviceCategoryRepository
+                        .findBySlug(slug)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Category not found"
+                                )
+                        );
+
+        return CategoryResponse.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .slug(category.getSlug())
+                .status(category.getStatus())
+                .build();
     }
 
     @Override
-    public List<CommunityResponse> getAllCommunities() {
+    public List<CategoryResponse> getActiveCategories() {
 
-        return communityRepository.findAll()
-                .stream()
-                .filter(Community::getActive)
-                .map(community -> CommunityResponse.builder()
-                        .id(community.getId())
-                        .name(community.getName())
-                        .build())
-                .toList();
-    }
+        List<ServiceCategory> categories =
+                serviceCategoryRepository.findByStatus(
+                        ServiceStatus.ACTIVE
+                );
 
-    @Override
-    public List<CityResponse> getAllCities() {
-
-        return cityRepository.findAll()
-                .stream()
-                .filter(City::getActive)
-                .map(city -> CityResponse.builder()
-                        .id(city.getId())
-                        .cityName(city.getCityName())
+        return categories.stream()
+                .map(category -> CategoryResponse.builder()
+                        .id(category.getId())
+                        .categoryName(category.getCategoryName())
+                        .slug(category.getSlug())
                         .build())
                 .toList();
     }
@@ -270,9 +319,9 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                             .id(service.getId())
                             .serviceName(service.getServiceName())
                             .slug(service.getSlug())
-                            .categoryName(
+                            .categorySlug(
                                     service.getCategory()
-                                            .getCategoryName()
+                                            .getSlug()
                             )
                             .durationMinutes(
                                     service.getDurationMinutes()
@@ -292,9 +341,9 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
         PoojaServices service =
                 poojaServicesRepository
-                        .findBySlugAndDeletedFalse(slug)
+                        .findBySlugAndStatus(slug, ServiceStatus.ACTIVE)
                         .orElseThrow(() ->
-                                new RuntimeException("Service not found")
+                                new ResourceNotFoundException("Service not found")
                         );
 
 
@@ -303,7 +352,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 service.getLanguages()
                         .stream()
                         .map(mapping ->
-                                mapping.getLanguage().getName()
+                                mapping.getLanguage().getLanguageName()
                         )
                         .toList();
 
@@ -313,7 +362,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 service.getCommunities()
                         .stream()
                         .map(mapping ->
-                                mapping.getCommunity().getName()
+                                mapping.getCommunity().getCommunityName()
                         )
                         .toList();
 
@@ -354,8 +403,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 .id(service.getId())
                 .serviceName(service.getServiceName())
                 .slug(service.getSlug())
-                .categoryName(
-                        service.getCategory().getCategoryName()
+                .categorySlug(
+                        service.getCategory().getSlug()
                 )
                 .shortDescription(service.getShortDescription())
                 .fullDescription(service.getFullDescription())
@@ -368,5 +417,638 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 .cities(cities)
                 .packages(packages)
                 .build();
+    }
+
+    @Override
+    public String createCategory(
+            CreateCategoryRequest request
+    ) {
+
+        if (serviceCategoryRepository.existsByCategoryName(
+                request.getCategoryName()
+        )) {
+
+            throw new DuplicateResourceException(
+                    "Category name already exists"
+            );
+        }
+
+        if (serviceCategoryRepository.existsBySlug(
+                request.getSlug()
+        )) {
+
+            throw new DuplicateResourceException(
+                    "Slug already exists"
+            );
+        }
+
+        ServiceCategory category =
+                ServiceCategory.builder()
+                        .categoryName(request.getCategoryName())
+                        .slug(request.getSlug())
+                        .status(request.getStatus())
+                        .build();
+
+        serviceCategoryRepository.save(category);
+
+        return "Category created successfully";
+    }
+
+    @Override
+    public String updateCategory(
+            String slug,
+            CreateCategoryRequest request
+    ) {
+
+        ServiceCategory category =
+                serviceCategoryRepository
+                        .findBySlug(slug)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Category not found"
+                                )
+                        );
+
+        if (!category.getCategoryName()
+                .equals(request.getCategoryName())
+
+                &&
+
+                serviceCategoryRepository.existsByCategoryName(
+                        request.getCategoryName()
+                )) {
+
+            throw new DuplicateResourceException(
+                    "Category name already exists"
+            );
+        }
+
+
+
+        if (!category.getSlug()
+                .equals(request.getSlug())
+
+                &&
+
+                serviceCategoryRepository.existsBySlug(
+                        request.getSlug()
+                )) {
+
+            throw new DuplicateResourceException(
+                    "Slug already exists"
+            );
+        }
+
+        category.setCategoryName(
+                request.getCategoryName()
+        );
+
+        category.setSlug(
+                request.getSlug()
+        );
+
+        category.setStatus(
+                request.getStatus()
+        );
+
+
+
+        serviceCategoryRepository.save(category);
+
+        return "Category updated successfully";
+    }
+
+    @Override
+    public List<PoojaServiceCardResponse>
+    getAllServicesForAdmin() {
+
+        List<PoojaServices> services =
+                poojaServicesRepository.findAll();
+
+        return services.stream()
+                .map(service -> PoojaServiceCardResponse.builder()
+
+                        .serviceName(service.getServiceName())
+
+                        .slug(service.getSlug())
+
+                        .thumbnailImage(
+                                service.getThumbnailImage()
+                        )
+
+                        .status(service.getStatus())
+
+                        .featured(service.getFeatured())
+
+                        .categorySlug(
+                                service.getCategory()
+                                        .getSlug()
+                        )
+
+                        .build())
+
+                .toList();
+    }
+
+    @Override
+    public PoojaServiceDetailsResponse
+    getServiceDetailsForAdmin(String slug) {
+
+        PoojaServices service =
+                poojaServicesRepository
+                        .findBySlug(slug)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Service not found"
+                                )
+                        );
+
+
+
+        List<String> languages =
+                service.getLanguages()
+                        .stream()
+                        .map(mapping ->
+                                mapping.getLanguage().getLanguageName()
+                        )
+                        .toList();
+
+
+
+        List<String> communities =
+                service.getCommunities()
+                        .stream()
+                        .map(mapping ->
+                                mapping.getCommunity().getCommunityName()
+                        )
+                        .toList();
+
+
+
+        List<String> cities =
+                service.getLocations()
+                        .stream()
+                        .map(mapping ->
+                                mapping.getCity().getCityName()
+                        )
+                        .toList();
+
+
+
+        List<ServicePackageResponse> packages =
+                service.getPackages()
+                        .stream()
+                        .map(pkg ->
+                                ServicePackageResponse.builder()
+                                        .packageType(
+                                                pkg.getPackageType()
+                                        )
+                                        .shortDescription(
+                                                pkg.getShortDescription()
+                                        )
+                                        .includedItems(
+                                                pkg.getIncludedItems()
+                                        )
+                                        .price(pkg.getPrice())
+                                        .advancePercentage(
+                                                pkg.getAdvancePercentage()
+                                        )
+                                        .durationMinutes(
+                                                pkg.getDurationMinutes()
+                                        )
+                                        .status(pkg.getStatus())
+                                        .build()
+                        )
+                        .toList();
+
+
+
+        return PoojaServiceDetailsResponse.builder()
+
+                .id(service.getId())
+
+                .serviceName(service.getServiceName())
+
+                .slug(service.getSlug())
+
+                .categorySlug(
+                        service.getCategory()
+                                .getSlug()
+                )
+
+                .shortDescription(
+                        service.getShortDescription()
+                )
+
+                .fullDescription(
+                        service.getFullDescription()
+                )
+
+                .benefits(service.getBenefits())
+
+                .durationMinutes(
+                        service.getDurationMinutes()
+                )
+
+                .status(service.getStatus())
+
+                .featured(service.getFeatured())
+
+                .cancellationAllowed(
+                        service.getCancellationAllowed()
+                )
+
+                .refundAllowed(
+                        service.getRefundAllowed()
+                )
+
+                .metaTitle(service.getMetaTitle())
+
+                .metaDescription(
+                        service.getMetaDescription()
+                )
+
+                .metaKeywords(
+                        service.getMetaKeywords()
+                )
+
+                .thumbnailImage(
+                        service.getThumbnailImage()
+                )
+
+                .bannerImage(
+                        service.getBannerImage()
+                )
+
+                .languages(languages)
+
+                .communities(communities)
+
+                .cities(cities)
+
+                .packages(packages)
+
+                .build();
+    }
+
+    @Override
+    public String updatePoojaService(
+            String slug,
+            CreatePoojaServiceRequest request
+    ) {
+
+        PoojaServices poojaService =
+                poojaServicesRepository
+                        .findBySlug(slug)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Service not found"
+                                )
+                        );
+
+
+        // CHECK DUPLICATE SLUG
+
+        if (!poojaService.getSlug().equals(request.getSlug())
+                &&
+                poojaServicesRepository.existsBySlug(
+                        request.getSlug()
+                )) {
+
+            throw new DuplicateResourceException(
+                    "Slug already exists"
+            );
+        }
+
+
+        // CATEGORY
+
+        ServiceCategory category =
+                serviceCategoryRepository
+                        .findBySlug(request.getCategorySlug())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Category not found"
+                                )
+                        );
+
+
+        // UPDATE BASIC FIELDS
+
+        poojaService.setServiceName(
+                request.getServiceName()
+        );
+
+        poojaService.setSlug(
+                request.getSlug()
+        );
+
+        poojaService.setCategory(category);
+
+        poojaService.setShortDescription(
+                request.getShortDescription()
+        );
+
+        poojaService.setFullDescription(
+                request.getFullDescription()
+        );
+
+        poojaService.setBenefits(
+                request.getBenefits()
+        );
+
+        poojaService.setDurationMinutes(
+                request.getDurationMinutes()
+        );
+
+        poojaService.setStatus(
+                request.getStatus()
+        );
+
+        poojaService.setFeatured(
+                request.getFeatured()
+        );
+
+        poojaService.setCancellationAllowed(
+                request.getCancellationAllowed()
+        );
+
+        poojaService.setRefundAllowed(
+                request.getRefundAllowed()
+        );
+
+        poojaService.setMetaTitle(
+                request.getMetaTitle()
+        );
+
+        poojaService.setMetaDescription(
+                request.getMetaDescription()
+        );
+
+        poojaService.setMetaKeywords(
+                request.getMetaKeywords()
+        );
+
+        String oldThumbnailImage =
+                poojaService.getThumbnailImage();
+
+        String oldBannerImage =
+                poojaService.getBannerImage();
+
+
+        poojaService.setThumbnailImage(
+                request.getThumbnailImage()
+        );
+
+        poojaService.setBannerImage(
+                request.getBannerImage()
+        );
+
+
+        // CLEAR OLD RELATIONS
+
+        poojaService.getPackages().clear();
+
+        poojaService.getLanguages().clear();
+
+        poojaService.getCommunities().clear();
+
+        poojaService.getLocations().clear();
+
+
+        // PACKAGES
+
+        List<ServicePackage> packageList =
+                new ArrayList<>();
+
+        if (request.getPackages() != null) {
+
+            for (CreateServicePackageRequest packageRequest
+                    : request.getPackages()) {
+
+                ServicePackage servicePackage =
+                        ServicePackage.builder()
+                                .packageType(
+                                        packageRequest.getPackageType()
+                                )
+                                .shortDescription(
+                                        packageRequest.getShortDescription()
+                                )
+                                .includedItems(
+                                        packageRequest.getIncludedItems()
+                                )
+                                .price(
+                                        packageRequest.getPrice()
+                                )
+                                .advancePercentage(
+                                        packageRequest
+                                                .getAdvancePercentage()
+                                )
+                                .durationMinutes(
+                                        packageRequest
+                                                .getDurationMinutes()
+                                )
+                                .status(packageRequest.getStatus())
+                                .poojaService(poojaService)
+                                .build();
+
+                packageList.add(servicePackage);
+            }
+        }
+
+        poojaService.setPackages(packageList);
+
+
+        // LANGUAGES
+
+        List<ServiceLanguageMapping> languageMappings =
+                new ArrayList<>();
+
+        if (request.getLanguageIds() != null) {
+
+            for (Long languageId : request.getLanguageIds()) {
+
+                Language language =
+                        languageRepository.findByIdAndActiveTrue(languageId)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "Language not found"
+                                        )
+                                );
+
+                ServiceLanguageMapping mapping =
+                        ServiceLanguageMapping.builder()
+                                .poojaService(poojaService)
+                                .language(language)
+                                .build();
+
+                languageMappings.add(mapping);
+            }
+        }
+
+        poojaService.setLanguages(languageMappings);
+
+
+        // COMMUNITIES
+
+        List<ServiceCommunityMapping> communityMappings =
+                new ArrayList<>();
+
+        if (request.getCommunityIds() != null) {
+
+            for (Long communityId : request.getCommunityIds()) {
+
+                Community community =
+                        communityRepository.findByIdAndActiveTrue(communityId)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "Community not found"
+                                        )
+                                );
+
+                ServiceCommunityMapping mapping =
+                        ServiceCommunityMapping.builder()
+                                .poojaService(poojaService)
+                                .community(community)
+                                .build();
+
+                communityMappings.add(mapping);
+            }
+        }
+
+        poojaService.setCommunities(
+                communityMappings
+        );
+
+
+        // CITIES
+
+        List<ServiceCityMapping> cityMappings =
+                new ArrayList<>();
+
+        if (request.getCityIds() != null) {
+
+            for (Long cityId : request.getCityIds()) {
+
+                City city =
+                        cityRepository.findByIdAndActiveTrue(cityId)
+                                .orElseThrow(() ->
+                                        new ResourceNotFoundException(
+                                                "City not found"
+                                        )
+                                );
+
+                ServiceCityMapping mapping =
+                        ServiceCityMapping.builder()
+                                .poojaService(poojaService)
+                                .city(city)
+                                .build();
+
+                cityMappings.add(mapping);
+            }
+        }
+
+        poojaService.setLocations(cityMappings);
+
+
+        poojaServicesRepository.save(poojaService);
+
+        if (oldThumbnailImage != null
+                &&
+                !oldThumbnailImage.equals(
+                        request.getThumbnailImage()
+                )) {
+
+            try {
+
+                fileService.deleteImage(
+                        oldThumbnailImage
+                );
+
+            } catch (Exception ex) {
+
+                log.error(
+                        "Failed to delete thumbnail image: {}",
+                        oldThumbnailImage,
+                        ex
+                );
+            }
+        }
+
+        if (oldBannerImage != null
+                &&
+                !oldBannerImage.equals(
+                        request.getBannerImage()
+                )) {
+
+            try {
+
+                fileService.deleteImage(
+                        oldBannerImage
+                );
+
+            } catch (Exception ex) {
+
+                log.error(
+                        "Failed to delete banner image: {}",
+                        oldBannerImage,
+                        ex
+                );
+            }
+        }
+
+        return "Pooja service updated successfully";
+    }
+
+    @Override
+    public List<PoojaServiceCardResponse>
+    getFeaturedServices() {
+
+        List<PoojaServices> services =
+                poojaServicesRepository
+                        .findByFeaturedTrueAndStatus(
+                                ServiceStatus.ACTIVE
+                        );
+
+        return services.stream()
+                .map(service -> {
+
+                    String startingPrice = null;
+
+                    if (service.getPackages() != null) {
+
+                        ServicePackage classicPackage =
+                                service.getPackages()
+                                        .stream()
+                                        .filter(pkg ->
+                                                pkg.getPackageType()
+                                                        == PackageType.CLASSIC
+                                        )
+                                        .findFirst()
+                                        .orElse(null);
+
+                        if (classicPackage != null) {
+                            startingPrice =
+                                    "₹" + classicPackage.getPrice();
+                        }
+                    }
+
+                    return PoojaServiceCardResponse.builder()
+                            .id(service.getId())
+                            .serviceName(service.getServiceName())
+                            .slug(service.getSlug())
+                            .categorySlug(
+                                    service.getCategory().getSlug()
+                            )
+                            .durationMinutes(
+                                    service.getDurationMinutes()
+                            )
+                            .thumbnailImage(
+                                    service.getThumbnailImage()
+                            )
+                            .startingPrice(startingPrice)
+                            .build();
+                })
+                .toList();
     }
 }
