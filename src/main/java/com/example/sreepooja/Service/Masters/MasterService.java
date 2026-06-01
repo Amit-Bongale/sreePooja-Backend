@@ -69,4 +69,14 @@ public interface MasterService {
     List<LanguageResponse> getAllLanguagesForAdmin();
 
     List<CommunityResponse> getAllCommunitiesForAdmin();
+
+    StateResponse getStateById(Long stateId);
+
+    CityResponse getCityById(Long cityId);
+
+    PincodeResponse getPincodeById(Long pincodeId);
+
+    LanguageResponse getLanguageById(Long languageId);
+
+    CommunityResponse getCommunityById(Long communityId);
 }

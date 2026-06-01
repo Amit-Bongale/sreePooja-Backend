@@ -33,6 +33,15 @@ public class AdminMasterController {
         return masterService.getAllStatesForAdmin();
     }
 
+    //GET STATE BY ID
+    @GetMapping("/states/{stateId}")
+    public StateResponse getStateById(
+            @PathVariable Long stateId
+    ) {
+
+        return masterService.getStateById(stateId);
+    }
+
     //UPDATE STATE
     @PutMapping("/states/{stateId}")
     public StateResponse updateState(
@@ -63,6 +72,15 @@ public class AdminMasterController {
         return masterService.getCitiesByState(stateId);
     }
 
+    //GET CITY BY ID
+    @GetMapping("/cities/{cityId}")
+    public CityResponse getCityById(
+            @PathVariable Long cityId
+    ) {
+
+        return masterService.getCityById(cityId);
+    }
+
     //UPDATE CITY
     @PutMapping("/cities/{cityId}")
     public CityResponse updateCity(
@@ -72,7 +90,6 @@ public class AdminMasterController {
 
         return masterService.updateCity(cityId, request);
     }
-
 
     // CREATE PINCODES UNDER CITY
     @PostMapping("/cities/{cityId}/pincodes")
@@ -92,6 +109,15 @@ public class AdminMasterController {
     ) {
 
         return masterService.getPincodesByCity(cityId);
+    }
+
+    //GET PINCODE BY ID
+    @GetMapping("/pincodes/{pincodeId}")
+    public PincodeResponse getPincodeById(
+            @PathVariable Long pincodeId
+    ) {
+
+        return masterService.getPincodeById(pincodeId);
     }
 
     //UPDATE PINCODE
@@ -123,6 +149,15 @@ public class AdminMasterController {
         return masterService.getAllLanguagesForAdmin();
     }
 
+    //GET LANGUAGE BY ID
+    @GetMapping("/languages/{languageId}")
+    public LanguageResponse getLanguageById(
+            @PathVariable Long languageId
+    ) {
+
+        return masterService.getLanguageById(languageId);
+    }
+
     //UPDATE LANGUAGE
     @PutMapping("/languages/{languageId}")
     public LanguageResponse updateLanguage(
@@ -150,6 +185,15 @@ public class AdminMasterController {
     public List<CommunityResponse> getAllCommunities() {
 
         return masterService.getAllCommunitiesForAdmin();
+    }
+
+    //GET COMMUNITY BY ID
+    @GetMapping("/communities/{communityId}")
+    public CommunityResponse getCommunityById(
+            @PathVariable Long communityId
+    ) {
+
+        return masterService.getCommunityById(communityId);
     }
 
     //UPDATE COMMUNITY

@@ -184,7 +184,7 @@ public class MasterServiceImpl implements MasterService {
                     .cityName(city.getCityName())
                     .stateName(city.getState().getStateName())
                     .active(city.getActive())
-                    .pincodes(pincodeResponses)
+                    .pincodes(new ArrayList<>())
                     .build();
 
             responseList.add(response);
@@ -246,31 +246,12 @@ public class MasterServiceImpl implements MasterService {
 
         City updatedCity = cityRepository.save(city);
 
-        List<PincodeResponse> pincodeResponses =
-                new ArrayList<>();
-
-        List<CityPincode> pincodes =
-                cityPincodeRepository
-                        .findByCityId(cityId);
-
-        for (CityPincode pincode : pincodes) {
-
-            PincodeResponse response =
-                    PincodeResponse.builder()
-                            .id(pincode.getId())
-                            .pincode(pincode.getPincode())
-                            .active(pincode.getActive())
-                            .build();
-
-            pincodeResponses.add(response);
-        }
-
         return CityResponse.builder()
                 .id(updatedCity.getId())
                 .cityName(updatedCity.getCityName())
                 .stateName(updatedCity.getState().getStateName())
                 .active(updatedCity.getActive())
-                .pincodes(pincodeResponses)
+                .pincodes(new ArrayList<>())
                 .build();
     }
 
@@ -381,27 +362,11 @@ public class MasterServiceImpl implements MasterService {
                 cityPincodeRepository
                         .findByCityIdAndActiveTrue(cityId);
 
-        List<PincodeResponse> pincodeResponses =
-                new ArrayList<>();
-
-        for (CityPincode pincode : pincodes) {
-
-            PincodeResponse response =
-                    PincodeResponse.builder()
-                            .id(pincode.getId())
-                            .pincode(pincode.getPincode())
-                            .active(pincode.getActive())
-                            .build();
-
-            pincodeResponses.add(response);
-        }
-
         return CityResponse.builder()
                 .id(city.getId())
                 .cityName(city.getCityName())
                 .stateName(city.getState().getStateName())
                 .active(city.getActive())
-                .pincodes(pincodeResponses)
                 .build();
     }
 
@@ -732,5 +697,104 @@ public class MasterServiceImpl implements MasterService {
         }
 
         return responseList;
+    }
+
+    @Override
+    public StateResponse getStateById(
+            Long stateId
+    ) {
+
+        State state = stateRepository.findById(stateId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "State not found"
+                        ));
+
+        return StateResponse.builder()
+                .id(state.getId())
+                .stateName(state.getStateName())
+                .active(state.getActive())
+                .build();
+    }
+
+    @Override
+    public CityResponse getCityById(
+            Long cityId
+    ) {
+
+        City city = cityRepository.findById(cityId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "City not found"
+                        ));
+
+        return CityResponse.builder()
+                .id(city.getId())
+                .cityName(city.getCityName())
+                .stateName(city.getState().getStateName())
+                .active(city.getActive())
+                .pincodes(new ArrayList<>())
+                .build();
+    }
+
+    @Override
+    public PincodeResponse getPincodeById(
+            Long pincodeId
+    ) {
+
+        CityPincode pincode =
+                cityPincodeRepository.findById(pincodeId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Pincode not found"
+                                ));
+
+        return PincodeResponse.builder()
+                .id(pincode.getId())
+                .pincode(pincode.getPincode())
+                .active(pincode.getActive())
+                .build();
+    }
+
+    @Override
+    public LanguageResponse getLanguageById(
+            Long languageId
+    ) {
+
+        Language language =
+                languageRepository.findById(languageId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Language not found"
+                                ));
+
+        return LanguageResponse.builder()
+                .id(language.getId())
+                .languageName(
+                        language.getLanguageName()
+                )
+                .active(language.getActive())
+                .build();
+    }
+
+    @Override
+    public CommunityResponse getCommunityById(
+            Long communityId
+    ) {
+
+        Community community =
+                communityRepository.findById(communityId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                ));
+
+        return CommunityResponse.builder()
+                .id(community.getId())
+                .communityName(
+                        community.getCommunityName()
+                )
+                .active(community.getActive())
+                .build();
     }
 }

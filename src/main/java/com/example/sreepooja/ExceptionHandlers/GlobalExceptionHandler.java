@@ -79,4 +79,44 @@ public class GlobalExceptionHandler {
             ));
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ApiErrorResponse(
+                        409,
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidFile(InvalidFileException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiErrorResponse(
+                        400,
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(FileSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleFileSizeExceeded(FileSizeExceededException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ApiErrorResponse(
+                        413,
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ApiErrorResponse> handleFileStorage(FileStorageException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiErrorResponse(
+                        500,
+                        ex.getMessage()
+                ));
+    }
+
 }
