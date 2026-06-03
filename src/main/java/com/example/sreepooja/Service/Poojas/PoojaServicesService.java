@@ -5,13 +5,16 @@ import com.example.sreepooja.DTO.Request.Poojas.CreatePoojaServiceRequest;
 import com.example.sreepooja.DTO.Response.Poojas.CategoryResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceCardResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceDetailsResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface PoojaServicesService {
 
     String createPoojaService(
-            CreatePoojaServiceRequest request
+            CreatePoojaServiceRequest request,
+            MultipartFile thumbnailImage,
+            MultipartFile bannerImage
     );
 
     List<PoojaServiceCardResponse> filterServices(
@@ -26,9 +29,11 @@ public interface PoojaServicesService {
 
     CategoryResponse getCategoryDetailsForAdmin(String slug);
 
-    String updateCategory(
-            String Slug,
-            CreateCategoryRequest request
+    String updatePoojaService(
+            Long id,
+            CreatePoojaServiceRequest request,
+            MultipartFile thumbnailImage,
+            MultipartFile bannerImage
     );
 
     PoojaServiceDetailsResponse
@@ -43,9 +48,9 @@ public interface PoojaServicesService {
     PoojaServiceDetailsResponse
     getServiceDetailsForAdmin(String slug);
 
-    String updatePoojaService(
-            String slug,
-            CreatePoojaServiceRequest request
+    String updateCategory(
+            Long id,
+            CreateCategoryRequest request
     );
 
     List<PoojaServiceCardResponse>

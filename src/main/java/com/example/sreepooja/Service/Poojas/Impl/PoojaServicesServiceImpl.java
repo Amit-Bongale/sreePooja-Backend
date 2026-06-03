@@ -3,6 +3,7 @@ package com.example.sreepooja.Service.Poojas.Impl;
 import com.example.sreepooja.DTO.Request.Poojas.CreateCategoryRequest;
 import com.example.sreepooja.DTO.Request.Poojas.CreatePoojaServiceRequest;
 import com.example.sreepooja.DTO.Request.Poojas.CreateServicePackageRequest;
+import com.example.sreepooja.DTO.Response.File.FileUploadResponse;
 import com.example.sreepooja.DTO.Response.Poojas.CategoryResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceCardResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceDetailsResponse;
@@ -11,9 +12,12 @@ import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Entity.Masters.Language;
 import com.example.sreepooja.Entity.Poojas.*;
+import com.example.sreepooja.Enum.File.FileType;
 import com.example.sreepooja.Enum.Poojas.PackageType;
 import com.example.sreepooja.Enum.Poojas.ServiceStatus;
+import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.DuplicateResourceException;
+import com.example.sreepooja.ExceptionHandlers.InvalidFileException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.CommunityRepository;
@@ -26,7 +30,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,143 +54,158 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
     @Override
     @Transactional
     public String createPoojaService(
-            CreatePoojaServiceRequest request
+            CreatePoojaServiceRequest request,
+            MultipartFile thumbnailImage,
+            MultipartFile bannerImage
     ) {
 
         if (poojaServicesRepository.existsBySlug(request.getSlug())) {
-            throw new DuplicateResourceException("Slug already exists");
+            throw new DuplicateResourceException(
+                    "Pooja service with slug '" + request.getSlug() + "' already exists"
+            );
+        }
+
+        if (request.getServiceName() == null ||
+                request.getServiceName().isBlank()) {
+            throw new BadRequestException(
+                    "Service name is required"
+            );
+        }
+
+        if (request.getSlug() == null ||
+                request.getSlug().isBlank()) {
+            throw new BadRequestException(
+                    "Slug is required"
+            );
+        }
+
+        if (request.getCategorySlug() == null ||
+                request.getCategorySlug().isBlank()) {
+            throw new BadRequestException(
+                    "Category is required"
+            );
+        }
+
+        if (request.getShortDescription() == null ||
+                request.getShortDescription().isBlank()) {
+            throw new BadRequestException(
+                    "Short description is required"
+            );
+        }
+
+        if (request.getFullDescription() == null ||
+                request.getFullDescription().isBlank()) {
+            throw new BadRequestException(
+                    "Full description is required"
+            );
+        }
+
+        if (request.getBenefits() == null ||
+                request.getBenefits().isBlank()) {
+            throw new BadRequestException(
+                    "Benefits are required"
+            );
+        }
+
+        if (request.getDurationMinutes() == null) {
+            throw new BadRequestException(
+                    "Duration is required"
+            );
+        }
+
+        if (thumbnailImage == null ||
+                thumbnailImage.isEmpty()) {
+            throw new InvalidFileException(
+                    "Thumbnail image is required"
+            );
         }
 
         ServiceCategory category = serviceCategoryRepository
                 .findBySlug(request.getCategorySlug())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Category not found"));
+                        new ResourceNotFoundException(
+                                "Category not found with slug: " + request.getCategorySlug()
+                        ));
 
-        PoojaServices poojaService = PoojaServices.builder()
-                .serviceName(request.getServiceName())
-                .slug(request.getSlug())
-                .category(category)
-                .shortDescription(request.getShortDescription())
-                .fullDescription(request.getFullDescription())
-                .benefits(request.getBenefits())
-                .durationMinutes(request.getDurationMinutes())
-                .status(request.getStatus())
-                .featured(request.getFeatured())
-                .cancellationAllowed(request.getCancellationAllowed())
-                .refundAllowed(request.getRefundAllowed())
-                .metaTitle(request.getMetaTitle())
-                .metaDescription(request.getMetaDescription())
-                .metaKeywords(request.getMetaKeywords())
-                .thumbnailImage(request.getThumbnailImage())
-                .bannerImage(request.getBannerImage())
-                .build();
+        String thumbnailUrl = null;
+        String bannerUrl = null;
 
+        try {
 
-        // PACKAGES
+            FileUploadResponse thumbnailResponse =
+                    fileService.uploadImage(
+                            thumbnailImage,
+                            FileType.POOJA_SERVICE_THUMBNAILS
+                    );
 
-        List<ServicePackage> packageList = new ArrayList<>();
+            thumbnailUrl = thumbnailResponse.getFileUrl();
 
-        if (request.getPackages() != null) {
+            if (bannerImage != null && !bannerImage.isEmpty()) {
 
-            for (CreateServicePackageRequest packageRequest
-                    : request.getPackages()) {
+                FileUploadResponse bannerResponse =
+                        fileService.uploadImage(
+                                bannerImage,
+                                FileType.POOJA_SERVICE_BANNERS
+                        );
 
-                ServicePackage servicePackage = ServicePackage.builder()
-                        .packageType(packageRequest.getPackageType())
-                        .shortDescription(
-                                packageRequest.getShortDescription()
-                        )
-                        .includedItems(
-                                packageRequest.getIncludedItems()
-                        )
-                        .price(packageRequest.getPrice())
-                        .advancePercentage(
-                                packageRequest.getAdvancePercentage()
-                        )
-                        .durationMinutes(
-                                packageRequest.getDurationMinutes()
-                        )
-                        .status(ServiceStatus.ACTIVE)
-                        .poojaService(poojaService)
-                        .build();
-
-                packageList.add(servicePackage);
+                bannerUrl = bannerResponse.getFileUrl();
             }
-        }
 
-        poojaService.setPackages(packageList);
+            PoojaServices poojaService = PoojaServices.builder()
+                    .serviceName(request.getServiceName())
+                    .slug(request.getSlug())
+                    .category(category)
+                    .shortDescription(request.getShortDescription())
+                    .fullDescription(request.getFullDescription())
+                    .benefits(request.getBenefits())
+                    .durationMinutes(request.getDurationMinutes())
+                    .status(request.getStatus())
+                    .featured(Boolean.TRUE.equals(request.getFeatured()))
+                    .cancellationAllowed(Boolean.TRUE.equals(request.getCancellationAllowed()))
+                    .refundAllowed(Boolean.TRUE.equals(request.getRefundAllowed()))
+                    .metaTitle(request.getMetaTitle())
+                    .metaDescription(request.getMetaDescription())
+                    .metaKeywords(request.getMetaKeywords())
+                    .thumbnailImage(thumbnailUrl)
+                    .bannerImage(bannerUrl)
+                    .build();
 
+            buildPackages(request, poojaService);
 
-        // LANGUAGES
+            buildLanguages(request, poojaService);
 
-        List<ServiceLanguageMapping> languageMappings =
-                new ArrayList<>();
+            buildCommunities(request, poojaService);
 
-        if (request.getLanguageIds() != null) {
+            buildCities(request, poojaService);
 
-            Set<Long> uniqueLanguageIds =
-                    new HashSet<>(request.getLanguageIds());
+            poojaServicesRepository.save(poojaService);
 
-            for (Long languageId : uniqueLanguageIds) {
+            return "Pooja service created successfully";
 
-                Language language = languageRepository
-                        .findByIdAndActiveTrue(languageId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Language not found"
-                                ));
+        } catch (Exception ex) {
 
-                ServiceLanguageMapping mapping =
-                        ServiceLanguageMapping.builder()
-                                .poojaService(poojaService)
-                                .language(language)
-                                .build();
-
-                languageMappings.add(mapping);
+            if (thumbnailUrl != null) {
+                fileService.deleteImage(thumbnailUrl);
             }
-        }
 
-        poojaService.setLanguages(languageMappings);
-
-
-        // COMMUNITIES
-
-        List<ServiceCommunityMapping> communityMappings =
-                new ArrayList<>();
-
-        if (request.getCommunityIds() != null) {
-
-            Set<Long> uniqueCommunityIds =
-                    new HashSet<>(request.getCommunityIds());
-
-            for (Long communityId : uniqueCommunityIds) {
-
-                Community community = communityRepository
-                        .findByIdAndActiveTrue(communityId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Community not found"
-                                ));
-
-                ServiceCommunityMapping mapping =
-                        ServiceCommunityMapping.builder()
-                                .poojaService(poojaService)
-                                .community(community)
-                                .build();
-
-                communityMappings.add(mapping);
+            if (bannerUrl != null) {
+                fileService.deleteImage(bannerUrl);
             }
+
+            throw ex;
         }
+    }
 
-        poojaService.setCommunities(communityMappings);
-
-
-        // CITIES
+    private void buildCities(
+            CreatePoojaServiceRequest request,
+            PoojaServices poojaService
+    ) {
 
         List<ServiceCityMapping> cityMappings =
                 new ArrayList<>();
 
-        if (request.getCityIds() != null) {
+        if (request.getCityIds() != null &&
+                !request.getCityIds().isEmpty()) {
 
             Set<Long> uniqueCityIds =
                     new HashSet<>(request.getCityIds());
@@ -208,11 +229,171 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
             }
         }
 
-        poojaService.setLocations(cityMappings);
+        poojaService.getLocations().addAll(cityMappings);
+    }
 
-        poojaServicesRepository.save(poojaService);
+    private void buildCommunities(
+            CreatePoojaServiceRequest request,
+            PoojaServices poojaService
+    ) {
 
-        return "Pooja service created successfully";
+        List<ServiceCommunityMapping> communityMappings =
+                new ArrayList<>();
+
+        if (request.getCommunityIds() != null &&
+                !request.getCommunityIds().isEmpty()) {
+
+            Set<Long> uniqueCommunityIds =
+                    new HashSet<>(request.getCommunityIds());
+
+            for (Long communityId : uniqueCommunityIds) {
+
+                Community community = communityRepository
+                        .findByIdAndActiveTrue(communityId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                ));
+
+                ServiceCommunityMapping mapping =
+                        ServiceCommunityMapping.builder()
+                                .poojaService(poojaService)
+                                .community(community)
+                                .build();
+
+                communityMappings.add(mapping);
+            }
+        }
+
+        poojaService.getCommunities().addAll(communityMappings);
+    }
+
+    private void buildLanguages(
+            CreatePoojaServiceRequest request,
+            PoojaServices poojaService
+    ) {
+
+        List<ServiceLanguageMapping> languageMappings =
+                new ArrayList<>();
+
+        if (request.getLanguageIds() != null &&
+                !request.getLanguageIds().isEmpty()) {
+
+            Set<Long> uniqueLanguageIds =
+                    new HashSet<>(request.getLanguageIds());
+
+            for (Long languageId : uniqueLanguageIds) {
+
+                Language language = languageRepository
+                        .findByIdAndActiveTrue(languageId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Language not found"
+                                ));
+
+                ServiceLanguageMapping mapping =
+                        ServiceLanguageMapping.builder()
+                                .poojaService(poojaService)
+                                .language(language)
+                                .build();
+
+                languageMappings.add(mapping);
+            }
+        }
+
+        poojaService.getLanguages().addAll(languageMappings);
+    }
+
+    private void buildPackages(
+            CreatePoojaServiceRequest request,
+            PoojaServices poojaService
+    ) {
+
+        List<ServicePackage> packageList = new ArrayList<>();
+
+        Set<PackageType> packageTypes = new HashSet<>();
+
+        if (request.getPackages() != null
+                && !request.getPackages().isEmpty()) {
+
+            for (CreateServicePackageRequest packageRequest
+                    : request.getPackages()) {
+
+                if (packageRequest.getPackageType() == null) {
+                    throw new BadRequestException(
+                            "Package type is required"
+                    );
+                }
+
+                if (!packageTypes.add(
+                        packageRequest.getPackageType()
+                )) {
+
+                    throw new BadRequestException(
+                            "Duplicate package type: "
+                                    + packageRequest.getPackageType()
+                    );
+                }
+
+                if (packageRequest.getShortDescription() == null
+                        || packageRequest.getShortDescription().isBlank()) {
+
+                    throw new BadRequestException(
+                            "Package short description is required"
+                    );
+                }
+
+                if (packageRequest.getPrice() == null) {
+
+                    throw new BadRequestException(
+                            "Package price is required"
+                    );
+                }
+
+                if (packageRequest.getAdvancePercentage() == null) {
+
+                    throw new BadRequestException(
+                            "Advance percentage is required"
+                    );
+                }
+
+                if (packageRequest.getPackageType()
+                        == PackageType.PLATINUM
+                        &&
+                        (packageRequest.getIncludedItems() == null
+                                || packageRequest.getIncludedItems().isBlank())) {
+
+                    throw new BadRequestException(
+                            "Included items are required for PLATINUM package"
+                    );
+                }
+
+                ServicePackage servicePackage =
+                        ServicePackage.builder()
+                                .packageType(
+                                        packageRequest.getPackageType()
+                                )
+                                .shortDescription(
+                                        packageRequest.getShortDescription()
+                                )
+                                .includedItems(
+                                        packageRequest.getIncludedItems()
+                                )
+                                .price(
+                                        packageRequest.getPrice()
+                                )
+                                .advancePercentage(
+                                        packageRequest.getAdvancePercentage()
+                                )
+                                .status(ServiceStatus.ACTIVE)
+                                .poojaService(poojaService)
+                                .build();
+
+                packageList.add(servicePackage);
+            }
+        }
+
+        poojaService.getPackages().addAll(packageList);
     }
 
     @Override
@@ -292,7 +473,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
         return services.stream()
                 .map(service -> {
 
-                    String startingPrice = null;
+                    BigDecimal startingPrice = null;
 
                     if (service.getPackages() != null) {
 
@@ -308,8 +489,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
                         if (classicPackage != null) {
 
-                            startingPrice =
-                                    "₹" + classicPackage.getPrice();
+                            startingPrice =classicPackage.getPrice();
                         }
                     }
 
@@ -390,9 +570,6 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .advancePercentage(
                                                 pkg.getAdvancePercentage()
                                         )
-                                        .durationMinutes(
-                                                pkg.getDurationMinutes()
-                                        )
                                         .build()
                         )
                         .toList();
@@ -442,6 +619,27 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
             );
         }
 
+        if (request.getCategoryName() == null ||
+                request.getCategoryName().isBlank()) {
+            throw new BadRequestException(
+                    "Category name is required"
+            );
+        }
+
+        if (request.getSlug() == null ||
+                request.getSlug().isBlank()) {
+            throw new BadRequestException(
+                    "Slug is required"
+            );
+        }
+
+
+        if (request.getStatus() == null) {
+            throw new BadRequestException(
+                    "Status is required"
+            );
+        }
+
         ServiceCategory category =
                 ServiceCategory.builder()
                         .categoryName(request.getCategoryName())
@@ -456,13 +654,13 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
     @Override
     public String updateCategory(
-            String slug,
+            Long id,
             CreateCategoryRequest request
     ) {
 
         ServiceCategory category =
                 serviceCategoryRepository
-                        .findBySlug(slug)
+                        .findById(id)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Category not found"
@@ -499,6 +697,26 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
             );
         }
 
+        if (request.getCategoryName() == null ||
+                request.getCategoryName().isBlank()) {
+            throw new BadRequestException(
+                    "Category name is required"
+            );
+        }
+
+        if (request.getSlug() == null ||
+                request.getSlug().isBlank()) {
+            throw new BadRequestException(
+                    "Slug is required"
+            );
+        }
+
+        if (request.getStatus() == null) {
+            throw new BadRequestException(
+                    "Status is required"
+            );
+        }
+
         category.setCategoryName(
                 request.getCategoryName()
         );
@@ -510,8 +728,6 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
         category.setStatus(
                 request.getStatus()
         );
-
-
 
         serviceCategoryRepository.save(category);
 
@@ -526,26 +742,53 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 poojaServicesRepository.findAll();
 
         return services.stream()
-                .map(service -> PoojaServiceCardResponse.builder()
+                .map(service -> {
 
-                        .serviceName(service.getServiceName())
+                    BigDecimal startingPrice = null;
 
-                        .slug(service.getSlug())
+                    if(service.getPackages()!= null) {
 
-                        .thumbnailImage(
-                                service.getThumbnailImage()
-                        )
+                        ServicePackage classicPackage =
+                                service.getPackages()
+                                        .stream()
+                                        .filter(pkg ->
+                                                pkg.getPackageType()
+                                                        == PackageType.CLASSIC
+                                        )
+                                        .findFirst()
+                                        .orElse(null);
 
-                        .status(service.getStatus())
+                        if (classicPackage != null) {
+                            startingPrice = classicPackage.getPrice();
+                        }
+                    }
 
-                        .featured(service.getFeatured())
+                    return PoojaServiceCardResponse.builder()
 
-                        .categorySlug(
-                                service.getCategory()
-                                        .getSlug()
-                        )
+                            .serviceName(service.getServiceName())
 
-                        .build())
+                            .slug(service.getSlug())
+
+                            .thumbnailImage(
+                                    service.getThumbnailImage()
+                            )
+
+                            .status(service.getStatus())
+
+                            .featured(service.getFeatured())
+
+                            .categorySlug(
+                                    service.getCategory()
+                                            .getSlug()
+                            )
+
+                            .startingPrice(startingPrice)
+
+                            .durationMinutes(service.getDurationMinutes())
+
+                            .build();
+
+                })
 
                 .toList();
     }
@@ -612,9 +855,6 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .price(pkg.getPrice())
                                         .advancePercentage(
                                                 pkg.getAdvancePercentage()
-                                        )
-                                        .durationMinutes(
-                                                pkg.getDurationMinutes()
                                         )
                                         .status(pkg.getStatus())
                                         .build()
@@ -692,22 +932,77 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
     }
 
     @Override
+    @Transactional
     public String updatePoojaService(
-            String slug,
-            CreatePoojaServiceRequest request
+            Long id,
+            CreatePoojaServiceRequest request,
+            MultipartFile thumbnailImage,
+            MultipartFile bannerImage
     ) {
+
+        if (request.getServiceName() == null ||
+                request.getServiceName().isBlank()) {
+            throw new BadRequestException(
+                    "Service name is required"
+            );
+        }
+
+        if (request.getSlug() == null ||
+                request.getSlug().isBlank()) {
+            throw new BadRequestException(
+                    "Slug is required"
+            );
+        }
+
+        if (request.getCategorySlug() == null ||
+                request.getCategorySlug().isBlank()) {
+            throw new BadRequestException(
+                    "Category is required"
+            );
+        }
+
+        if (request.getShortDescription() == null ||
+                request.getShortDescription().isBlank()) {
+            throw new BadRequestException(
+                    "Short description is required"
+            );
+        }
+
+        if (request.getFullDescription() == null ||
+                request.getFullDescription().isBlank()) {
+            throw new BadRequestException(
+                    "Full description is required"
+            );
+        }
+
+        if (request.getBenefits() == null ||
+                request.getBenefits().isBlank()) {
+            throw new BadRequestException(
+                    "Benefits are required"
+            );
+        }
+
+        if (request.getDurationMinutes() == null) {
+            throw new BadRequestException(
+                    "Duration is required"
+            );
+        }
+
+
+        if (request.getStatus() == null) {
+            throw new BadRequestException(
+                    "Status is required"
+            );
+        }
 
         PoojaServices poojaService =
                 poojaServicesRepository
-                        .findBySlug(slug)
+                        .findById(id)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Service not found"
                                 )
                         );
-
-
-        // CHECK DUPLICATE SLUG
 
         if (!poojaService.getSlug().equals(request.getSlug())
                 &&
@@ -720,9 +1015,6 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
             );
         }
 
-
-        // CATEGORY
-
         ServiceCategory category =
                 serviceCategoryRepository
                         .findBySlug(request.getCategorySlug())
@@ -732,272 +1024,207 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                 )
                         );
 
-
-        // UPDATE BASIC FIELDS
-
-        poojaService.setServiceName(
-                request.getServiceName()
-        );
-
-        poojaService.setSlug(
-                request.getSlug()
-        );
-
-        poojaService.setCategory(category);
-
-        poojaService.setShortDescription(
-                request.getShortDescription()
-        );
-
-        poojaService.setFullDescription(
-                request.getFullDescription()
-        );
-
-        poojaService.setBenefits(
-                request.getBenefits()
-        );
-
-        poojaService.setDurationMinutes(
-                request.getDurationMinutes()
-        );
-
-        poojaService.setStatus(
-                request.getStatus()
-        );
-
-        poojaService.setFeatured(
-                request.getFeatured()
-        );
-
-        poojaService.setCancellationAllowed(
-                request.getCancellationAllowed()
-        );
-
-        poojaService.setRefundAllowed(
-                request.getRefundAllowed()
-        );
-
-        poojaService.setMetaTitle(
-                request.getMetaTitle()
-        );
-
-        poojaService.setMetaDescription(
-                request.getMetaDescription()
-        );
-
-        poojaService.setMetaKeywords(
-                request.getMetaKeywords()
-        );
-
         String oldThumbnailImage =
                 poojaService.getThumbnailImage();
 
         String oldBannerImage =
                 poojaService.getBannerImage();
 
+        String newThumbnailImage = null;
+        String newBannerImage = null;
 
-        poojaService.setThumbnailImage(
-                request.getThumbnailImage()
-        );
+        try {
 
-        poojaService.setBannerImage(
-                request.getBannerImage()
-        );
+            if (thumbnailImage != null
+                    && !thumbnailImage.isEmpty()) {
 
+                FileUploadResponse thumbnailResponse =
+                        fileService.uploadImage(
+                                thumbnailImage,
+                                FileType.POOJA_SERVICE_THUMBNAILS
+                        );
 
-        // CLEAR OLD RELATIONS
+                newThumbnailImage =
+                        thumbnailResponse.getFileUrl();
 
-        poojaService.getPackages().clear();
-
-        poojaService.getLanguages().clear();
-
-        poojaService.getCommunities().clear();
-
-        poojaService.getLocations().clear();
-
-
-        // PACKAGES
-
-        List<ServicePackage> packageList =
-                new ArrayList<>();
-
-        if (request.getPackages() != null) {
-
-            for (CreateServicePackageRequest packageRequest
-                    : request.getPackages()) {
-
-                ServicePackage servicePackage =
-                        ServicePackage.builder()
-                                .packageType(
-                                        packageRequest.getPackageType()
-                                )
-                                .shortDescription(
-                                        packageRequest.getShortDescription()
-                                )
-                                .includedItems(
-                                        packageRequest.getIncludedItems()
-                                )
-                                .price(
-                                        packageRequest.getPrice()
-                                )
-                                .advancePercentage(
-                                        packageRequest
-                                                .getAdvancePercentage()
-                                )
-                                .durationMinutes(
-                                        packageRequest
-                                                .getDurationMinutes()
-                                )
-                                .status(packageRequest.getStatus())
-                                .poojaService(poojaService)
-                                .build();
-
-                packageList.add(servicePackage);
-            }
-        }
-
-        poojaService.setPackages(packageList);
-
-
-        // LANGUAGES
-
-        List<ServiceLanguageMapping> languageMappings =
-                new ArrayList<>();
-
-        if (request.getLanguageIds() != null) {
-
-            for (Long languageId : request.getLanguageIds()) {
-
-                Language language =
-                        languageRepository.findByIdAndActiveTrue(languageId)
-                                .orElseThrow(() ->
-                                        new ResourceNotFoundException(
-                                                "Language not found"
-                                        )
-                                );
-
-                ServiceLanguageMapping mapping =
-                        ServiceLanguageMapping.builder()
-                                .poojaService(poojaService)
-                                .language(language)
-                                .build();
-
-                languageMappings.add(mapping);
-            }
-        }
-
-        poojaService.setLanguages(languageMappings);
-
-
-        // COMMUNITIES
-
-        List<ServiceCommunityMapping> communityMappings =
-                new ArrayList<>();
-
-        if (request.getCommunityIds() != null) {
-
-            for (Long communityId : request.getCommunityIds()) {
-
-                Community community =
-                        communityRepository.findByIdAndActiveTrue(communityId)
-                                .orElseThrow(() ->
-                                        new ResourceNotFoundException(
-                                                "Community not found"
-                                        )
-                                );
-
-                ServiceCommunityMapping mapping =
-                        ServiceCommunityMapping.builder()
-                                .poojaService(poojaService)
-                                .community(community)
-                                .build();
-
-                communityMappings.add(mapping);
-            }
-        }
-
-        poojaService.setCommunities(
-                communityMappings
-        );
-
-
-        // CITIES
-
-        List<ServiceCityMapping> cityMappings =
-                new ArrayList<>();
-
-        if (request.getCityIds() != null) {
-
-            for (Long cityId : request.getCityIds()) {
-
-                City city =
-                        cityRepository.findByIdAndActiveTrue(cityId)
-                                .orElseThrow(() ->
-                                        new ResourceNotFoundException(
-                                                "City not found"
-                                        )
-                                );
-
-                ServiceCityMapping mapping =
-                        ServiceCityMapping.builder()
-                                .poojaService(poojaService)
-                                .city(city)
-                                .build();
-
-                cityMappings.add(mapping);
-            }
-        }
-
-        poojaService.setLocations(cityMappings);
-
-
-        poojaServicesRepository.save(poojaService);
-
-        if (oldThumbnailImage != null
-                &&
-                !oldThumbnailImage.equals(
-                        request.getThumbnailImage()
-                )) {
-
-            try {
-
-                fileService.deleteImage(
-                        oldThumbnailImage
-                );
-
-            } catch (Exception ex) {
-
-                log.error(
-                        "Failed to delete thumbnail image: {}",
-                        oldThumbnailImage,
-                        ex
+                poojaService.setThumbnailImage(
+                        newThumbnailImage
                 );
             }
-        }
 
-        if (oldBannerImage != null
-                &&
-                !oldBannerImage.equals(
-                        request.getBannerImage()
-                )) {
+            if (bannerImage != null
+                    && !bannerImage.isEmpty()) {
 
-            try {
+                FileUploadResponse bannerResponse =
+                        fileService.uploadImage(
+                                bannerImage,
+                                FileType.POOJA_SERVICE_BANNERS
+                        );
 
-                fileService.deleteImage(
-                        oldBannerImage
-                );
+                newBannerImage =
+                        bannerResponse.getFileUrl();
 
-            } catch (Exception ex) {
-
-                log.error(
-                        "Failed to delete banner image: {}",
-                        oldBannerImage,
-                        ex
+                poojaService.setBannerImage(
+                        newBannerImage
                 );
             }
-        }
 
-        return "Pooja service updated successfully";
+            poojaService.setServiceName(
+                    request.getServiceName()
+            );
+
+            poojaService.setSlug(
+                    request.getSlug()
+            );
+
+            poojaService.setCategory(
+                    category
+            );
+
+            poojaService.setShortDescription(
+                    request.getShortDescription()
+            );
+
+            poojaService.setFullDescription(
+                    request.getFullDescription()
+            );
+
+            poojaService.setBenefits(
+                    request.getBenefits()
+            );
+
+            poojaService.setDurationMinutes(
+                    request.getDurationMinutes()
+            );
+
+            poojaService.setStatus(
+                    request.getStatus()
+            );
+
+            poojaService.setFeatured(
+                    Boolean.TRUE.equals(request.getFeatured())
+            );
+
+            poojaService.setCancellationAllowed(
+                    Boolean.TRUE.equals(request.getCancellationAllowed())
+            );
+
+            poojaService.setRefundAllowed(
+                    Boolean.TRUE.equals(request.getRefundAllowed())
+            );
+
+            poojaService.setMetaTitle(
+                    request.getMetaTitle()
+            );
+
+            poojaService.setMetaDescription(
+                    request.getMetaDescription()
+            );
+
+            poojaService.setMetaKeywords(
+                    request.getMetaKeywords()
+            );
+
+            poojaService.getPackages().clear();
+
+            poojaService.getLanguages().clear();
+
+            poojaService.getCommunities().clear();
+
+            poojaService.getLocations().clear();
+
+            buildPackages(
+                    request,
+                    poojaService
+            );
+
+            buildLanguages(
+                    request,
+                    poojaService
+            );
+
+            buildCommunities(
+                    request,
+                    poojaService
+            );
+
+            buildCities(
+                    request,
+                    poojaService
+            );
+
+            poojaServicesRepository.saveAndFlush(
+                    poojaService
+            );
+
+            if (newThumbnailImage != null
+                    && oldThumbnailImage != null) {
+
+                try {
+
+                    fileService.deleteImage(
+                            oldThumbnailImage
+                    );
+
+                } catch (Exception ex) {
+
+                    log.error(
+                            "Failed to delete thumbnail image: {}",
+                            oldThumbnailImage,
+                            ex
+                    );
+                }
+            }
+
+            if (newBannerImage != null
+                    && oldBannerImage != null) {
+
+                try {
+
+                    fileService.deleteImage(
+                            oldBannerImage
+                    );
+
+                } catch (Exception ex) {
+
+                    log.error(
+                            "Failed to delete banner image: {}",
+                            oldBannerImage,
+                            ex
+                    );
+                }
+            }
+
+            return "Pooja service updated successfully";
+
+        } catch (Exception ex) {
+
+            if (newThumbnailImage != null) {
+
+                try {
+
+                    fileService.deleteImage(
+                            newThumbnailImage
+                    );
+
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (newBannerImage != null) {
+
+                try {
+
+                    fileService.deleteImage(
+                            newBannerImage
+                    );
+
+                } catch (Exception ignored) {
+                }
+            }
+
+            throw ex;
+        }
     }
 
     @Override
@@ -1013,7 +1240,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
         return services.stream()
                 .map(service -> {
 
-                    String startingPrice = null;
+                    BigDecimal startingPrice = null;
 
                     if (service.getPackages() != null) {
 
@@ -1028,8 +1255,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .orElse(null);
 
                         if (classicPackage != null) {
-                            startingPrice =
-                                    "₹" + classicPackage.getPrice();
+                            startingPrice =classicPackage.getPrice();
                         }
                     }
 

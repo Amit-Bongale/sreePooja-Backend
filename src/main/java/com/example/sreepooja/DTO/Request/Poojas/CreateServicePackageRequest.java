@@ -27,7 +27,5 @@ public class CreateServicePackageRequest {
     @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal advancePercentage;
 
-    private Integer durationMinutes;
-
     private ServiceStatus status;
 }

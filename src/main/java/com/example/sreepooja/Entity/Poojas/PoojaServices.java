@@ -33,33 +33,40 @@ public class PoojaServices {
     @Column(nullable = false)
     private String serviceName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String slug;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     private ServiceCategory category;
 
-    @Column(length = 500)
+    @Column(length = 500, nullable = false)
     private String shortDescription;
 
     @Lob
+    @Column(nullable = false)
     private String fullDescription;
 
     @Lob
+    @Column(nullable = false)
     private String benefits;
 
+    @Column(nullable = false)
     private Integer durationMinutes;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ServiceStatus status;
 
+    @Column(nullable = false)
     @Builder.Default
     private Boolean featured = false;
 
+    @Column(nullable = false)
     @Builder.Default
     private Boolean cancellationAllowed = true;
 
+    @Column(nullable = false)
     @Builder.Default
     private Boolean refundAllowed = true;
 
@@ -70,6 +77,7 @@ public class PoojaServices {
 
     private String metaKeywords;
 
+    @Column(nullable = false)
     private String thumbnailImage;
 
     private String bannerImage;
@@ -84,6 +92,7 @@ public class PoojaServices {
     )
     private List<ServicePackage> packages = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(
             mappedBy = "poojaService",
             cascade = CascadeType.ALL,
@@ -91,6 +100,7 @@ public class PoojaServices {
     )
     private List<ServiceLanguageMapping> languages = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(
             mappedBy = "poojaService",
             cascade = CascadeType.ALL,
@@ -98,6 +108,7 @@ public class PoojaServices {
     )
     private List<ServiceCommunityMapping> communities = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(
             mappedBy = "poojaService",
             cascade = CascadeType.ALL,

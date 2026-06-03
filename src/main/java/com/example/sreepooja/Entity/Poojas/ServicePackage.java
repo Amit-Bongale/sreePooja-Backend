@@ -31,7 +31,7 @@ public class ServicePackage {
     @Column(nullable = false)
     private PackageType packageType;
 
-    @Column
+    @Column(nullable = false)
     private String shortDescription;
 
     @Lob
@@ -43,9 +43,8 @@ public class ServicePackage {
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal advancePercentage;
 
-    private Integer durationMinutes;
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ServiceStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)

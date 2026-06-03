@@ -4,6 +4,8 @@ import com.example.sreepooja.Enum.Poojas.ServiceStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 public class PoojaServiceCardResponse {
@@ -20,7 +22,7 @@ public class PoojaServiceCardResponse {
 
     private String thumbnailImage;
 
-    private String startingPrice;
+    private BigDecimal startingPrice;
 
     private ServiceStatus status;
 

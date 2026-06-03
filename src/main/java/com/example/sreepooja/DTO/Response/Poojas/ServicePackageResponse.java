@@ -21,7 +21,5 @@ public class ServicePackageResponse {
 
     private BigDecimal advancePercentage;
 
-    private Integer durationMinutes;
-
     private ServiceStatus status;
 }

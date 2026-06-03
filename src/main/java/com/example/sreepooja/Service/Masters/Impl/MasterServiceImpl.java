@@ -29,6 +29,10 @@ public class MasterServiceImpl implements MasterService {
     @Override
     public StateResponse createState(StateRequest request) {
 
+        if(request.getStateName()==null || request.getStateName().isBlank()){
+            throw new BadRequestException("State name is required");
+        }
+
         if (stateRepository.existsByStateNameIgnoreCase(
                 request.getStateName()
         )) {
@@ -59,6 +63,10 @@ public class MasterServiceImpl implements MasterService {
         State state = stateRepository.findById(stateId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("State not found"));
+
+        if(request.getStateName()==null || request.getStateName().isBlank()){
+            throw new BadRequestException("State name is required");
+        }
 
         if (!state.getStateName().equalsIgnoreCase(
                 request.getStateName()
@@ -117,6 +125,10 @@ public class MasterServiceImpl implements MasterService {
         State state = stateRepository.findById(stateId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("State not found"));
+
+        if(request.getCityName()==null || request.getCityName().isBlank()){
+            throw new BadRequestException("City name is required");
+        }
 
         if (cityRepository.existsByCityNameIgnoreCaseAndStateId(
                 request.getCityName(),
@@ -204,6 +216,10 @@ public class MasterServiceImpl implements MasterService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("City not found"));
 
+        if(request.getCityName()==null || request.getCityName().isBlank()){
+            throw new BadRequestException("City name is required");
+        }
+
         if (!city.getCityName().equalsIgnoreCase(
                 request.getCityName()
         )) {
@@ -271,9 +287,25 @@ public class MasterServiceImpl implements MasterService {
             pincodeActive = false;
         }
 
+        if (request.getPincodes() == null ||
+                request.getPincodes().isEmpty()) {
+
+            throw new BadRequestException(
+                    "At least one pincode is required"
+            );
+        }
+
         List<PincodeResponse> responseList = new ArrayList<>();
 
         for (String pin : request.getPincodes()) {
+
+            if (pin == null ||
+                    !pin.matches("\\d{6}")) {
+
+                throw new BadRequestException(
+                        "Pincode must be exactly 6 digits"
+                );
+            }
 
             if (cityPincodeRepository.existsByPincode(pin)) {
                 throw new DuplicateResourceException(
@@ -382,6 +414,14 @@ public class MasterServiceImpl implements MasterService {
                                 new ResourceNotFoundException(
                                         "Pincode not found"
                                 ));
+
+        if (request.getPincode() == null ||
+                !request.getPincode().matches("\\d{6}")) {
+
+            throw new BadRequestException(
+                    "Pincode must be exactly 6 digits"
+            );
+        }
 
         if (!cityPincode.getPincode().equals(
                 request.getPincode()

@@ -7,8 +7,10 @@ import com.example.sreepooja.Service.Poojas.PoojaServicesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,19 +21,30 @@ public class AdminPoojaServiceController {
 
     private final PoojaServicesService poojaServicesService;
 
-    // CREATE SERVICE UNDER CATEGORY
-
-    @PostMapping
+    @PostMapping(
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<String> createPoojaService(
 
+            @RequestPart("request")
             @Valid
-            @RequestBody
-            CreatePoojaServiceRequest request
+            CreatePoojaServiceRequest request,
+
+            @RequestPart("thumbnailImage")
+            MultipartFile thumbnailImage,
+
+            @RequestPart(
+                    value = "bannerImage",
+                    required = false
+            )
+            MultipartFile bannerImage
     ) {
 
         String response =
                 poojaServicesService.createPoojaService(
-                        request
+                        request,
+                        thumbnailImage,
+                        bannerImage
                 );
 
         return new ResponseEntity<>(
@@ -60,20 +73,38 @@ public class AdminPoojaServiceController {
         );
     }
 
-    @PutMapping("/{slug}")
+    @PutMapping(
+            value = "/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<String> updatePoojaService(
 
-            @PathVariable String slug,
+            @PathVariable
+            Long id,
 
+            @RequestPart("request")
             @Valid
-            @RequestBody
-            CreatePoojaServiceRequest request
-    ) {
+            CreatePoojaServiceRequest request,
+
+            @RequestPart(
+                    value = "thumbnailImage",
+                    required = false
+            )
+            MultipartFile thumbnailImage,
+
+            @RequestPart(
+                    value = "bannerImage",
+                    required = false
+            )
+            MultipartFile bannerImage
+    ){
 
         return ResponseEntity.ok(
                 poojaServicesService.updatePoojaService(
-                        slug,
-                        request
+                        id,
+                        request,
+                        thumbnailImage,
+                        bannerImage
                 )
         );
     }

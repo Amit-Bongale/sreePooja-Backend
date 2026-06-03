@@ -46,11 +46,11 @@ public class AdminServiceCategoryController {
 
     // UPDATE CATEGORY
 
-    @PutMapping("/{slug}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateCategory(
 
             @PathVariable
-            String slug,
+            Long id,
 
             @Valid
             @RequestBody
@@ -59,7 +59,7 @@ public class AdminServiceCategoryController {
 
         return ResponseEntity.ok(
                 poojaServicesService.updateCategory(
-                        slug,
+                        id,
                         request
                 )
         );

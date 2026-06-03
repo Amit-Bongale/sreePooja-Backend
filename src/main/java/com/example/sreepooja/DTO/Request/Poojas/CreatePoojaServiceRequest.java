@@ -40,10 +40,6 @@ public class CreatePoojaServiceRequest {
 
     private String metaKeywords;
 
-    private String thumbnailImage;
-
-    private String bannerImage;
-
     private List<Long> languageIds;
 
     private List<Long> communityIds;
