@@ -385,10 +385,9 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                 .advancePercentage(
                                         packageRequest.getAdvancePercentage()
                                 )
-                                .status(ServiceStatus.ACTIVE)
+                                .status(packageRequest.getStatus())
                                 .poojaService(poojaService)
                                 .build();
-
                 packageList.add(servicePackage);
             }
         }
@@ -510,6 +509,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                     service.getThumbnailImage()
                             )
                             .startingPrice(startingPrice)
+                            .status(service.getStatus())
+                            .featured(service.getFeatured())
                             .build();
                 })
                 .toList();
@@ -561,6 +562,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
         List<ServicePackageResponse> packages =
                 service.getPackages()
                         .stream()
+                        .filter(packageitem-> packageitem.getStatus() == ServiceStatus.ACTIVE)
                         .map(pkg ->
                                 ServicePackageResponse.builder()
                                         .packageType(pkg.getPackageType())
@@ -570,6 +572,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .advancePercentage(
                                                 pkg.getAdvancePercentage()
                                         )
+                                        .status(pkg.getStatus())
                                         .build()
                         )
                         .toList();
@@ -589,6 +592,13 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                 .durationMinutes(service.getDurationMinutes())
                 .thumbnailImage(service.getThumbnailImage())
                 .bannerImage(service.getBannerImage())
+                .metaDescription(service.getMetaDescription())
+                .metaKeywords(service.getMetaKeywords())
+                .metaTitle(service.getMetaTitle())
+                .refundAllowed(service.getRefundAllowed())
+                .cancellationAllowed(service.getCancellationAllowed())
+                .featured(service.getFeatured())
+                .status(service.getStatus())
                 .languages(languages)
                 .communities(communities)
                 .cities(cities)
@@ -764,6 +774,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                     }
 
                     return PoojaServiceCardResponse.builder()
+
+                            .id(service.getId())
 
                             .serviceName(service.getServiceName())
 
@@ -1133,6 +1145,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
             poojaService.getLocations().clear();
 
+            poojaServicesRepository.flush();
+
             buildPackages(
                     request,
                     poojaService
@@ -1273,6 +1287,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                     service.getThumbnailImage()
                             )
                             .startingPrice(startingPrice)
+                            .featured(service.getFeatured())
+                            .status(service.getStatus())
                             .build();
                 })
                 .toList();

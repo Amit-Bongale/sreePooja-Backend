@@ -62,7 +62,6 @@ public class PoojaServicesController {
     getServiceDetails(
             @PathVariable String slug
     ) {
-
         return ResponseEntity.ok(
                 poojaServicesService.getServiceDetails(slug)
         );

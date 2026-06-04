@@ -19,5 +19,5 @@ public class CityResponse {
 
     private Boolean active;
 
-    private List<PincodeResponse> pincodes;
+    private List<String> pincodes;
 }

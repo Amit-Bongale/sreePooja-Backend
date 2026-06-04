@@ -112,12 +112,6 @@ public class Booking {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal balanceAmount;
 
-    @OneToMany(
-            mappedBy = "booking",
-            cascade = CascadeType.ALL
-    )
-    private List<Payments> payments = new ArrayList<>();
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus bookingStatus;
