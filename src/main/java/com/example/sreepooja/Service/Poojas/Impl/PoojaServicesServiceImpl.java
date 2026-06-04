@@ -29,6 +29,8 @@ import com.example.sreepooja.Service.Poojas.PoojaServicesService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -450,26 +452,28 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
     }
 
     @Override
-    public List<PoojaServiceCardResponse> filterServices(
+    public Page<PoojaServiceCardResponse> filterServices(
             String categorySlug,
             Long cityId,
             Long languageId,
             Long communityId,
-            String search
+            String search,
+            Pageable page
     ) {
 
-        List<PoojaServices> services =
+        Page<PoojaServices> services =
                 poojaServicesRepository.filterServices(
                         categorySlug,
                         cityId,
                         languageId,
                         communityId,
-                        search
+                        search,
+                        page
                 );
 
 
 
-        return services.stream()
+        return services
                 .map(service -> {
 
                     BigDecimal startingPrice = null;
@@ -512,8 +516,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                             .status(service.getStatus())
                             .featured(service.getFeatured())
                             .build();
-                })
-                .toList();
+                });
     }
 
     @Override

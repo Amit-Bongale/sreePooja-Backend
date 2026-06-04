@@ -2,6 +2,8 @@ package com.example.sreepooja.Repository.Poojas;
 
 import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Enum.Poojas.ServiceStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,7 +65,7 @@ public interface PoojaServicesRepository
             AND ps.status =
                 com.example.sreepooja.Enum.Poojas.ServiceStatus.ACTIVE
             """)
-    List<PoojaServices> filterServices(
+    Page<PoojaServices> filterServices(
 
             @Param("categorySlug")
             String categorySlug,
@@ -78,7 +80,9 @@ public interface PoojaServicesRepository
             Long communityId,
 
             @Param("search")
-            String search
+            String search,
+
+            Pageable page
     );
 
     List<PoojaServices> findByFeaturedTrueAndStatus(

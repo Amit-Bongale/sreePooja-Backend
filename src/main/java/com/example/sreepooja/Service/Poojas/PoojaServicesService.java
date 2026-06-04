@@ -5,6 +5,8 @@ import com.example.sreepooja.DTO.Request.Poojas.CreatePoojaServiceRequest;
 import com.example.sreepooja.DTO.Response.Poojas.CategoryResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceCardResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceDetailsResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -17,12 +19,13 @@ public interface PoojaServicesService {
             MultipartFile bannerImage
     );
 
-    List<PoojaServiceCardResponse> filterServices(
+    Page<PoojaServiceCardResponse> filterServices(
             String categorySlug,
             Long cityId,
             Long languageId,
             Long communityId,
-            String search
+            String search,
+            Pageable pageable
     );
 
     String createCategory(CreateCategoryRequest request);

@@ -5,6 +5,9 @@ import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceCardResponse;
 import com.example.sreepooja.DTO.Response.Poojas.PoojaServiceDetailsResponse;
 import com.example.sreepooja.Service.Poojas.PoojaServicesService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +30,7 @@ public class PoojaServicesController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PoojaServiceCardResponse>>
+    public ResponseEntity<Page<PoojaServiceCardResponse>>
     filterServices(
 
             @RequestParam(required = false)
@@ -43,8 +46,14 @@ public class PoojaServicesController {
             Long communityId,
 
             @RequestParam(required = false)
-            String search
+            String search,
+
+            @RequestParam(defaultValue = "0") int page,
+
+    @RequestParam(defaultValue = "15") int size
     ) {
+
+        Pageable pageable = PageRequest.of(page, size);
 
         return ResponseEntity.ok(
                 poojaServicesService.filterServices(
@@ -52,7 +61,8 @@ public class PoojaServicesController {
                         cityId,
                         languageId,
                         communityId,
-                        search
+                        search,
+                        pageable
                 )
         );
     }

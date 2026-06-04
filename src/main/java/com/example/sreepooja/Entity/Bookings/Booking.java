@@ -3,7 +3,6 @@ package com.example.sreepooja.Entity.Bookings;
 import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.CityPincode;
 import com.example.sreepooja.Entity.Masters.State;
-import com.example.sreepooja.Entity.Payments;
 import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Entity.Poojas.ServicePackage;
 import com.example.sreepooja.Entity.Users;
@@ -17,8 +16,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(
@@ -76,8 +73,8 @@ public class Booking {
     @Column(length = 100)
     private String preferredCommunity;
 
-    @Column(nullable = false, length = 255)
-    private String addressLine1;
+    @Column(nullable = false, length = 2000)
+    private String addressLine;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id", nullable = false)

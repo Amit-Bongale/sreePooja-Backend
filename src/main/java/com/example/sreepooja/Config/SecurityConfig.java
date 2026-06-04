@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/masters/**").permitAll()
                         .requestMatchers("/admin/service-categories/**").permitAll()
                         .requestMatchers("/files/**").permitAll()
+                        .requestMatchers("/bookings/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

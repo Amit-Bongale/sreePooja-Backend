@@ -374,7 +374,13 @@ public class MasterServiceImpl implements MasterService {
                     .cityName(city.getCityName())
                     .stateName(city.getState().getStateName())
                     .active(city.getActive())
-                    .pincodes(new ArrayList<>())
+                    .pincodes(
+                            city.getPincodes()
+                                    .stream()
+                                    .filter(CityPincode::getActive)
+                                    .map(CityPincode::getPincode)
+                                    .toList()
+                    )
                     .build();
 
             responseList.add(response);

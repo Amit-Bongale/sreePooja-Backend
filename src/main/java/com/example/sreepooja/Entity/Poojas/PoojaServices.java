@@ -44,11 +44,11 @@ public class PoojaServices {
     private String shortDescription;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String fullDescription;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String benefits;
 
     @Column(nullable = false)

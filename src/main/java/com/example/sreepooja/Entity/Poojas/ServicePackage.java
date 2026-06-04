@@ -35,6 +35,7 @@ public class ServicePackage {
     private String shortDescription;
 
     @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String includedItems;
 
     @Column(nullable = false, precision = 10, scale = 2)
