@@ -372,15 +372,7 @@ public class MasterServiceImpl implements MasterService {
             CityResponse response = CityResponse.builder()
                     .id(city.getId())
                     .cityName(city.getCityName())
-                    .stateName(city.getState().getStateName())
                     .active(city.getActive())
-                    .pincodes(
-                            city.getPincodes()
-                                    .stream()
-                                    .filter(CityPincode::getActive)
-                                    .map(CityPincode::getPincode)
-                                    .toList()
-                    )
                     .build();
 
             responseList.add(response);
@@ -390,22 +382,58 @@ public class MasterServiceImpl implements MasterService {
     }
 
     @Override
+    public List<StateResponse> getAllActiveStates() {
+
+        List<State> states = stateRepository.findByActiveTrue();
+
+        List<StateResponse> responseList = new ArrayList<>();
+
+        for (State state : states) {
+
+            StateResponse response = StateResponse.builder()
+                    .id(state.getId())
+                    .stateName(state.getStateName())
+                    .build();
+
+            responseList.add(response);
+        }
+
+        return responseList;
+    }
+
+    @Override
+    public StateResponse getStateDetails(Long stateId) {
+
+        State state = stateRepository.findByIdAndActiveTrue(stateId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("State not found"));
+
+        List<CityResponse> cities = cityRepository
+                .findByStateIdAndActiveTrue(stateId).stream().map(city -> CityResponse.builder().id(city.getId()).cityName(city.getCityName()).active(city.getActive()).build()).toList();
+
+        return StateResponse.builder()
+                .id(state.getId())
+                .stateName(state.getStateName())
+                .active(state.getActive())
+                .cities(cities)
+                .build();
+    }
+
+    @Override
     public CityResponse getCityDetails(Long cityId) {
 
         City city = cityRepository.findByIdAndActiveTrue(cityId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("City not found"));
 
-        List<CityPincode> pincodes =
-                cityPincodeRepository
-                        .findByCityIdAndActiveTrue(cityId);
+        List<PincodeResponse> pincodes = cityPincodeRepository
+                .findByCityIdAndActiveTrue(cityId).stream().map(cityPincode -> PincodeResponse.builder().id(cityPincode.getId()).pincode(cityPincode.getPincode()).active(cityPincode.getActive()).build()).toList();
 
         return CityResponse.builder()
                 .id(city.getId())
                 .cityName(city.getCityName())
-                .stateName(city.getState().getStateName())
                 .active(city.getActive())
-                .pincodes(pincodes.stream().map(CityPincode::getPincode).toList())
+                .pincodes(pincodes)
                 .build();
     }
 

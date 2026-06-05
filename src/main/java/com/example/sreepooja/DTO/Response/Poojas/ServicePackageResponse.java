@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 @Builder
 public class ServicePackageResponse {
 
+    private Long id;
+
     private PackageType packageType;
 
     private String shortDescription;

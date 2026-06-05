@@ -568,6 +568,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                         .filter(packageitem-> packageitem.getStatus() == ServiceStatus.ACTIVE)
                         .map(pkg ->
                                 ServicePackageResponse.builder()
+                                        .id(pkg.getId())
                                         .packageType(pkg.getPackageType())
                                         .shortDescription(pkg.getShortDescription())
                                         .includedItems(pkg.getIncludedItems())

@@ -3,6 +3,7 @@ package com.example.sreepooja.Controller.Public.Masters;
 import com.example.sreepooja.DTO.Response.Masters.CityResponse;
 import com.example.sreepooja.DTO.Response.Masters.CommunityResponse;
 import com.example.sreepooja.DTO.Response.Masters.LanguageResponse;
+import com.example.sreepooja.DTO.Response.Masters.StateResponse;
 import com.example.sreepooja.Service.Masters.MasterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,26 @@ public class MasterController {
         return masterService.getAllActiveCities();
     }
 
+    // GET ALL ACTIVE STATES
 
-    // GET CITY DETAILS WITH STATE + PINCODES
+    @GetMapping("/states")
+    public List<StateResponse> getAllStates() {
+
+        return masterService.getAllActiveStates();
+    }
+
+
+    // GET STATE DETAILS BY ID
+
+    @GetMapping("/states/{stateId}")
+    public StateResponse getStateDetails(
+            @PathVariable Long stateId
+    ) {
+
+        return masterService.getStateDetails(stateId);
+    }
+
+    // GET CITY DETAILS BY ID
 
     @GetMapping("/cities/{cityId}")
     public CityResponse getCityDetails(

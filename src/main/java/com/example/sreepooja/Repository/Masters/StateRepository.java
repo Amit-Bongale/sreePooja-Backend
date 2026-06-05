@@ -10,7 +10,7 @@ public interface StateRepository extends JpaRepository<State, Long> {
 
     boolean existsByStateNameIgnoreCase(String stateName);
 
-    List<State> findByActiveTrue();
-
     Optional<State> findByIdAndActiveTrue(Long id);
+
+    List<State> findByActiveTrue();
 }

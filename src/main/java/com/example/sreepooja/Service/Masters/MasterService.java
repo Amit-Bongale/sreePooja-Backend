@@ -23,6 +23,10 @@ public interface MasterService {
 
     List<CityResponse> getAllActiveCities();
 
+    List<StateResponse> getAllActiveStates();
+
+    StateResponse getStateDetails(Long stateId);
+
     CityResponse getCityDetails(Long cityId);
 
     CityResponse updateCity(

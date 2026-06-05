@@ -34,37 +34,36 @@ public interface PoojaServicesRepository
 
     // FILTER SERVICES
 
-    @Query("""
-            SELECT DISTINCT ps
-            FROM PoojaServices ps
-            LEFT JOIN ps.locations loc
-            LEFT JOIN ps.languages lang
-            LEFT JOIN ps.communities comm
-
-            WHERE
-            (:categorySlug IS NULL
-                OR ps.category.slug = :categorySlug)
-
-            AND
-            (:cityId IS NULL
-                OR loc.city.id = :cityId)
-
-            AND
-            (:languageId IS NULL
-                OR lang.language.id = :languageId)
-
-            AND
-            (:communityId IS NULL
-                OR comm.community.id = :communityId)
-
-            AND
-            (:search IS NULL
-                OR LOWER(ps.serviceName)
-                   LIKE LOWER(CONCAT('%', :search, '%')))
-
-            AND ps.status =
-                com.example.sreepooja.Enum.Poojas.ServiceStatus.ACTIVE
-            """)
+    @Query(
+            value = """
+        SELECT DISTINCT ps
+        FROM PoojaServices ps
+        LEFT JOIN ps.locations loc
+        LEFT JOIN ps.languages lang
+        LEFT JOIN ps.communities comm
+        WHERE
+            (:categorySlug IS NULL OR ps.category.slug = :categorySlug)
+        AND (:cityId IS NULL OR loc.city.id = :cityId)
+        AND (:languageId IS NULL OR lang.language.id = :languageId)
+        AND (:communityId IS NULL OR comm.community.id = :communityId)
+        AND (:search IS NULL OR LOWER(ps.serviceName) LIKE LOWER(CONCAT('%', :search, '%')))
+        AND ps.status = com.example.sreepooja.Enum.Poojas.ServiceStatus.ACTIVE
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT ps.id)
+        FROM PoojaServices ps
+        LEFT JOIN ps.locations loc
+        LEFT JOIN ps.languages lang
+        LEFT JOIN ps.communities comm
+        WHERE
+            (:categorySlug IS NULL OR ps.category.slug = :categorySlug)
+        AND (:cityId IS NULL OR loc.city.id = :cityId)
+        AND (:languageId IS NULL OR lang.language.id = :languageId)
+        AND (:communityId IS NULL OR comm.community.id = :communityId)
+        AND (:search IS NULL OR LOWER(ps.serviceName) LIKE LOWER(CONCAT('%', :search, '%')))
+        AND ps.status = com.example.sreepooja.Enum.Poojas.ServiceStatus.ACTIVE
+    """
+    )
     Page<PoojaServices> filterServices(
 
             @Param("categorySlug")

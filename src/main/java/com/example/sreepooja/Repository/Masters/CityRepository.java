@@ -17,5 +17,7 @@ public interface CityRepository extends JpaRepository<City, Long> {
 
     List<City> findByStateId(Long stateId);
 
+    List<City> findByStateIdAndActiveTrue(Long stateId);
+
     Optional<City> findByIdAndActiveTrue(Long id);
 }
