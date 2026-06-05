@@ -1,15 +1,23 @@
 package com.example.sreepooja.Repository;
 
-
 import com.example.sreepooja.Entity.Payments;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface PaymentRepository extends JpaRepository<Payments, Long> {
+public interface PaymentRepository
+        extends JpaRepository<Payments, Long> {
 
-    Optional<Payments> findByRazorpayOrderId(String orderId);
+    Optional<Payments> findByRazorpayOrderId(
+            String razorpayOrderId
+    );
 
+    boolean existsByRazorpayPaymentId(
+            String razorpayPaymentId
+    );
+
+    List<Payments> findByBookingId(
+            Long bookingId
+    );
 }

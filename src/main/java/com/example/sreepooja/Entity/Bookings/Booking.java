@@ -7,6 +7,7 @@ import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Entity.Poojas.ServicePackage;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
+import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
 import jakarta.persistence.*;
 import lombok.*;
@@ -74,7 +75,7 @@ public class Booking {
     private String preferredCommunity;
 
     @Column(nullable = false, length = 2000)
-    private String addressLine;
+    private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "state_id", nullable = false)
@@ -112,6 +113,10 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus bookingStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus paymentStatus;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

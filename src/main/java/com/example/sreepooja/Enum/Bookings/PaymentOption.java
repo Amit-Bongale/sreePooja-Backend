@@ -4,5 +4,7 @@ public enum PaymentOption {
 
     ADVANCE,
 
+    BALANCE,
+
     FULL
 }

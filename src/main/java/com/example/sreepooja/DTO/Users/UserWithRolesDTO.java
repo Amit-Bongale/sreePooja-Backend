@@ -1,7 +1,5 @@
 package com.example.sreepooja.DTO.Users;
 
-
-
 import com.example.sreepooja.Enum.UserRoles;
 
 import java.time.LocalDate;

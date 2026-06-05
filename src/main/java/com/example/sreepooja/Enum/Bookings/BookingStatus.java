@@ -4,11 +4,11 @@ public enum BookingStatus {
 
     PENDING_PAYMENT,
 
-    PAYMENT_SUCCESS,
-
-    PAYMENT_FAILED,
+    PAYMENT_RECEIVED,
 
     CONFIRMED,
+
+    PRIEST_ASSIGNED,
 
     COMPLETED,
 

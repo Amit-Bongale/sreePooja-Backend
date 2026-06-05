@@ -27,7 +27,10 @@ public class CreateBookingRequest {
     private String preferredCommunity;
 
     @NotBlank
-    private String addressLine;
+    private String address;
+
+    @NotNull
+    private Long stateId;
 
     @NotNull
     private Long cityId;

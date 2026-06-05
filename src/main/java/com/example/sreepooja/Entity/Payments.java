@@ -1,100 +1,69 @@
 package com.example.sreepooja.Entity;
 
+import com.example.sreepooja.Entity.Bookings.Booking;
+import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+        name = "payments",
+        indexes = {
+                @Index(name = "idx_payment_order_id", columnList = "razorpayOrderId"),
+                @Index(name = "idx_payment_payment_id", columnList = "razorpayPaymentId")
+        }
+)
+@Getter
+@Setter
 public class Payments {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id" ,  nullable = false)
+    @JoinColumn(
+            name = "booking_id",
+            nullable = false
+    )
+    private Booking booking;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
     private Users user;
 
-    private Long bookingId;
-
+    @Column(length = 200)
     private String razorpayOrderId;
+
+    @Column(length = 200)
     private String razorpayPaymentId;
 
-    private Integer amount;
+    @Column(length = 500)
+    private String razorpaySignature;
+
+    @Column(
+            nullable = false,
+            precision = 10,
+            scale = 2
+    )
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus status;
 
     @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime created_at = LocalDateTime.now();;
-
-    public enum PaymentStatus {
-        CREATED ,PAID , FAILED
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-
-    public Long getBookingId() {
-        return bookingId;
-    }
-
-    public void setBookingId(Long bookingId) {
-        this.bookingId = bookingId;
-    }
-
-    public String getRazorpayOrderId() {
-        return razorpayOrderId;
-    }
-
-    public void setRazorpayOrderId(String razorpayOrderId) {
-        this.razorpayOrderId = razorpayOrderId;
-    }
-
-    public String getRazorpayPaymentId() {
-        return razorpayPaymentId;
-    }
-
-    public void setRazorpayPaymentId(String razorpayPaymentId) {
-        this.razorpayPaymentId = razorpayPaymentId;
-    }
-
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Integer amount) {
-        this.amount = amount;
-    }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
-    }
-
-    public Users getUser() {
-        return user;
-    }
-
-    public void setUser(Users user) {
-        this.user = user;
-    }
+    @Column(
+            nullable = false,
+            updatable = false
+    )
+    private LocalDateTime createdAt;
 }
