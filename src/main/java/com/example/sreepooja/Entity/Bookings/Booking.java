@@ -7,6 +7,7 @@ import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Entity.Poojas.ServicePackage;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
+import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
 import jakarta.persistence.*;
@@ -117,6 +118,10 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentOption paymentOption;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
