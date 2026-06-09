@@ -107,11 +107,14 @@ public class PaymentsServiceImpl implements PaymentsService{
             JSONObject orderRequest =
                     new JSONObject();
 
-            orderRequest.put(
-                    "amount",
+            Long amountInPaise =
                     payableAmount
                             .multiply(BigDecimal.valueOf(100))
-                            .longValue()
+                            .longValue();
+
+            orderRequest.put(
+                    "amount",
+                    amountInPaise
             );
 
             orderRequest.put(
