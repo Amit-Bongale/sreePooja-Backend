@@ -337,22 +337,26 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                     );
                 }
 
-                if (packageRequest.getShortDescription() == null
-                        || packageRequest.getShortDescription().isBlank()) {
+                if (packageRequest.getPackageType()
+                        != PackageType.CUSTOM
+                        && (packageRequest.getShortDescription() == null
+                        || packageRequest.getShortDescription().isBlank())) {
 
                     throw new BadRequestException(
                             "Package short description is required"
                     );
                 }
 
-                if (packageRequest.getPrice() == null) {
+                if (packageRequest.getPackageType()
+                        != PackageType.CUSTOM && packageRequest.getPrice() == null) {
 
                     throw new BadRequestException(
                             "Package price is required"
                     );
                 }
 
-                if (packageRequest.getAdvancePercentage() == null) {
+                if (packageRequest.getPackageType()
+                        != PackageType.CUSTOM && packageRequest.getAdvancePercentage() == null) {
 
                     throw new BadRequestException(
                             "Advance percentage is required"
@@ -479,7 +483,6 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                     BigDecimal startingPrice = null;
 
                     if (service.getPackages() != null) {
-
                         ServicePackage classicPackage =
                                 service.getPackages()
                                         .stream()
@@ -490,13 +493,24 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .findFirst()
                                         .orElse(null);
 
-                        if (classicPackage != null) {
+                        ServicePackage platinumPackage =
+                                service.getPackages()
+                                        .stream()
+                                        .filter(pkg ->
+                                                pkg.getPackageType()
+                                                        == PackageType.PLATINUM
+                                        )
+                                        .findFirst()
+                                        .orElse(null);
 
-                            startingPrice =classicPackage.getPrice();
+                        if (classicPackage != null) {
+                            startingPrice = classicPackage.getPrice();
+                        } else if (platinumPackage != null){
+                            startingPrice = platinumPackage.getPrice();
+                        } else{
+                            startingPrice = BigDecimal.ZERO;
                         }
                     }
-
-
 
                     return PoojaServiceCardResponse.builder()
                             .id(service.getId())
@@ -772,10 +786,25 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .findFirst()
                                         .orElse(null);
 
+                        ServicePackage platinumPackage =
+                                service.getPackages()
+                                        .stream()
+                                        .filter(pkg ->
+                                                pkg.getPackageType()
+                                                        == PackageType.PLATINUM
+                                        )
+                                        .findFirst()
+                                        .orElse(null);
+
                         if (classicPackage != null) {
                             startingPrice = classicPackage.getPrice();
+                        } else if (platinumPackage != null){
+                            startingPrice = platinumPackage.getPrice();
+                        } else {
+                            startingPrice = BigDecimal.ZERO;
                         }
                     }
+
 
                     return PoojaServiceCardResponse.builder()
 
@@ -1272,8 +1301,23 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                         .findFirst()
                                         .orElse(null);
 
+                        ServicePackage platinumPackage =
+                                service.getPackages()
+                                        .stream()
+                                        .filter(pkg ->
+                                                pkg.getPackageType()
+                                                        == PackageType.PLATINUM
+                                        )
+                                        .findFirst()
+                                        .orElse(null);
+
                         if (classicPackage != null) {
                             startingPrice =classicPackage.getPrice();
+                        } else if (platinumPackage != null){
+                            startingPrice = platinumPackage.getPrice();
+                        }
+                        else{
+                            startingPrice = BigDecimal.ZERO;
                         }
                     }
 

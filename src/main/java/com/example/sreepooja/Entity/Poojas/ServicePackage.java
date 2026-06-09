@@ -31,17 +31,16 @@ public class ServicePackage {
     @Column(nullable = false)
     private PackageType packageType;
 
-    @Column(nullable = false)
     private String shortDescription;
 
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String includedItems;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false, precision = 5, scale = 2)
+    @Column(precision = 5, scale = 2)
     private BigDecimal advancePercentage;
 
     @Enumerated(EnumType.STRING)
