@@ -225,6 +225,14 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
+        if(request.getPreferredDate() == null){
+            throw new BadRequestException("Preferred Date is required");
+        }
+
+        if(request.getAddress() == null || request.getAddress().isBlank()){
+            throw new BadRequestException("Address is required");
+        }
+
         CustomUserDetails userDetails =
                 (CustomUserDetails)
                         SecurityContextHolder
