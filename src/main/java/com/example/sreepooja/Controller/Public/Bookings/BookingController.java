@@ -1,11 +1,14 @@
 package com.example.sreepooja.Controller.Public.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
+import com.example.sreepooja.DTO.Response.Bookings.BookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.CheckoutResponse;
 import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.MyBookingResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +39,40 @@ public class BookingController {
 
         return ResponseEntity.ok(
                 bookingService.createBooking(request)
+        );
+    }
+
+    @GetMapping("/my-bookings")
+    public ResponseEntity<Page<MyBookingResponse>>
+    getMyBookings(
+
+            @RequestParam(
+                    defaultValue = "0"
+            ) int page,
+
+            @RequestParam(
+                    defaultValue = "5"
+            ) int size
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.getMyBookings(
+                        page,
+                        size
+                )
+        );
+    }
+
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingDetailsResponse>
+    getBookingDetails(
+            @PathVariable Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.getBookingDetails(
+                        bookingId
+                )
         );
     }
 }

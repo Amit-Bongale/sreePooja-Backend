@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -63,8 +64,7 @@ public class Booking {
 
     private LocalDate confirmedDate;
 
-    @Enumerated(EnumType.STRING)
-    private TimeSlot confirmedTimeSlot;
+    private Time confirmedTime;
 
     @Column(length = 150)
     private String priestName;
