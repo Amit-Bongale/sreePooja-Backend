@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -241,18 +242,36 @@ public class PaymentsServiceImpl implements PaymentsService{
                     PaymentStatus.PAID
             );
 
-            if (booking.getPaymentOption()
-                    == PaymentOption.ADVANCE) {
-
-                booking.setPaymentStatus(
-                        PaymentStatus.PARTIALLY_PAID
-                );
-
-            } else {
+            if (booking.getPaymentStatus()
+                    == PaymentStatus.PARTIALLY_PAID) {
 
                 booking.setPaymentStatus(
                         PaymentStatus.PAID
                 );
+
+                booking.setBalanceAmount(
+                        BigDecimal.ZERO
+                );
+
+            } else {
+
+                if (booking.getPaymentOption()
+                        == PaymentOption.ADVANCE) {
+
+                    booking.setPaymentStatus(
+                            PaymentStatus.PARTIALLY_PAID
+                    );
+
+                } else {
+
+                    booking.setPaymentStatus(
+                            PaymentStatus.PAID
+                    );
+
+                    booking.setBalanceAmount(
+                            BigDecimal.ZERO
+                    );
+                }
             }
 
             booking.setBookingStatus(
@@ -284,6 +303,165 @@ public class PaymentsServiceImpl implements PaymentsService{
 
             throw new BadRequestException(
                     e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    @Transactional
+    public CreateOrderResponse createBalanceOrder(
+            Long bookingId
+    ) {
+
+        CustomUserDetails userDetails =
+                (CustomUserDetails)
+                        SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getPrincipal();
+
+        Users user =
+                usersRepository
+                        .findById(
+                                userDetails.getUserId()
+                        )
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "User not found"
+                                )
+                        );
+
+        Booking booking =
+                bookingRepository
+                        .findById(
+                                bookingId
+                        )
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Booking not found"
+                                )
+                        );
+
+        if (!booking.getUser().getId()
+                .equals(userDetails.getUserId())) {
+
+            throw new BadRequestException(
+                    "Booking does not belong to user"
+            );
+        }
+
+        if (booking.getPaymentStatus()
+                != PaymentStatus.PARTIALLY_PAID) {
+
+            throw new BadRequestException(
+                    "Balance payment is not applicable"
+            );
+        }
+
+        LocalDate effectiveDate =
+                booking.getConfirmedDate() != null
+                        ? booking.getConfirmedDate()
+                        : booking.getPreferredDate();
+
+        if (LocalDate.now()
+                .isAfter(
+                        effectiveDate.minusDays(3)
+                )) {
+
+            throw new BadRequestException(
+                    "Balance payment deadline has passed. Please contact Support"
+            );
+        }
+
+        try {
+
+            BigDecimal payableAmount =
+                    booking.getBalanceAmount();
+
+            JSONObject orderRequest =
+                    new JSONObject();
+
+            Long amountInPaise =
+                    payableAmount
+                            .multiply(BigDecimal.valueOf(100))
+                            .longValue();
+
+            orderRequest.put(
+                    "amount", amountInPaise
+            );
+
+            orderRequest.put(
+                    "currency",
+                    "INR"
+            );
+
+            orderRequest.put(
+                    "receipt",
+                    booking.getBookingNumber()
+                            + "-BALANCE"
+            );
+
+            Order razorpayOrder =
+                    razorpayClient.orders
+                            .create(orderRequest);
+
+            Payments payment =
+                    new Payments();
+
+            payment.setBooking(
+                    booking
+            );
+
+            payment.setUser(
+                    user
+            );
+
+            payment.setAmount(
+                    payableAmount
+            );
+
+            payment.setRazorpayOrderId(
+                    razorpayOrder.get("id")
+                            .toString()
+            );
+
+            payment.setStatus(
+                    PaymentStatus.PENDING
+            );
+
+            paymentRepository.save(
+                    payment
+            );
+
+            return CreateOrderResponse.builder()
+
+                    .bookingId(
+                            booking.getId()
+                    )
+
+                    .bookingNumber(
+                            booking.getBookingNumber()
+                    )
+
+                    .razorpayOrderId(
+                            razorpayOrder.get("id")
+                                    .toString()
+                    )
+
+                    .amount(
+                            payableAmount
+                    )
+
+                    .currency(
+                            "INR"
+                    )
+
+                    .build();
+
+        } catch (Exception e) {
+
+            throw new BadRequestException(
+                    "Unable to create balance payment order"
             );
         }
     }

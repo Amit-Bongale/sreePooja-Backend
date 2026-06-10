@@ -25,7 +25,7 @@ public class PaymentController {
                 paymentService.createOrder(bookingId)
         );
     }
-    
+
     @PostMapping("/verify")
     public ResponseEntity<VerifyPaymentResponse> verifyPayment(
             @Valid
@@ -35,6 +35,19 @@ public class PaymentController {
 
         return ResponseEntity.ok(
                 paymentService.verifyPayment(request)
+        );
+    }
+
+    @PostMapping("/create-balance-order/{bookingId}")
+    public ResponseEntity<CreateOrderResponse>
+    createBalanceOrder(
+            @PathVariable Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                paymentService.createBalanceOrder(
+                        bookingId
+                )
         );
     }
 }

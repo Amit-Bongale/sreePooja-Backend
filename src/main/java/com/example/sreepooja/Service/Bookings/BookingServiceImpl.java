@@ -257,14 +257,18 @@ public class BookingServiceImpl implements BookingService {
                                 )
                         );
 
-        BigDecimal packagePrice =
-                servicePackage.getPrice();
+        BigDecimal packagePrice = servicePackage.getPrice();
+
+        BigDecimal taxAmount = BigDecimal.ZERO;
+
+        BigDecimal totalAmount =
+                packagePrice.add(taxAmount);
 
         BigDecimal advancePercentage =
                 servicePackage.getAdvancePercentage();
 
         BigDecimal advanceAmount =
-                packagePrice
+                totalAmount
                         .multiply(advancePercentage)
                         .divide(
                                 BigDecimal.valueOf(100),
@@ -275,14 +279,9 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal balanceAmount = BigDecimal.ZERO;
 
         if (request.getPaymentOption() == PaymentOption.ADVANCE) {
-            balanceAmount = packagePrice.subtract(advanceAmount);
+            balanceAmount =
+                    totalAmount.subtract(advanceAmount);
         }
-
-        BigDecimal taxAmount =
-                BigDecimal.ZERO;
-
-        BigDecimal totalAmount =
-                packagePrice.add(taxAmount);
 
         Booking booking =
                 Booking.builder()
@@ -455,6 +454,11 @@ public class BookingServiceImpl implements BookingService {
                                     .getServiceName()
                     )
 
+                    .thumbnailImage(
+                            booking.getService()
+                                    .getThumbnailImage()
+                    )
+
                     .packageType(
                             booking.getSelectedPackage()
                                     .getPackageType()
@@ -579,6 +583,11 @@ public class BookingServiceImpl implements BookingService {
                 .serviceName(
                         booking.getService()
                                 .getServiceName()
+                )
+
+                .thumbnailImage(
+                        booking.getService()
+                                .getThumbnailImage()
                 )
 
                 .packageType(

@@ -21,6 +21,8 @@ public class MyBookingResponse {
 
     private String serviceName;
 
+    private String thumbnailImage;
+
     private PackageType packageType;
 
     private LocalDate poojaDate;

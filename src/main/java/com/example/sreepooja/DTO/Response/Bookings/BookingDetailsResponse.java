@@ -23,6 +23,8 @@ public class BookingDetailsResponse {
 
     private String serviceName;
 
+    private String thumbnailImage;
+
     private PackageType packageType;
 
     private BookingStatus bookingStatus;

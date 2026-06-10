@@ -11,4 +11,8 @@ public interface PaymentsService {
     VerifyPaymentResponse verifyPayment(
             VerifyPaymentRequest request
     );
+
+    CreateOrderResponse createBalanceOrder(
+            Long bookingId
+    );
 }
