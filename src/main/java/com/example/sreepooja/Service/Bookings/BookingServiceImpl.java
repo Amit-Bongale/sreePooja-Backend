@@ -272,8 +272,11 @@ public class BookingServiceImpl implements BookingService {
                                 RoundingMode.HALF_UP
                         );
 
-        BigDecimal balanceAmount =
-                packagePrice.subtract(advanceAmount);
+        BigDecimal balanceAmount = BigDecimal.ZERO;
+
+        if (request.getPaymentOption() == PaymentOption.ADVANCE) {
+            balanceAmount = packagePrice.subtract(advanceAmount);
+        }
 
         BigDecimal taxAmount =
                 BigDecimal.ZERO;
@@ -505,6 +508,19 @@ public class BookingServiceImpl implements BookingService {
     public BookingDetailsResponse getBookingDetails(
             Long bookingId
     ) {
+
+        Object principal =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
+
+        if (!(principal instanceof CustomUserDetails)) {
+
+            throw new BadRequestException(
+                    "Please Log in"
+            );
+        }
 
         CustomUserDetails userDetails =
                 (CustomUserDetails)
