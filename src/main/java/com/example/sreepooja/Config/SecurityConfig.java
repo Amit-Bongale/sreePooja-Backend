@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/files/**").permitAll()
                         .requestMatchers("/bookings/**").permitAll()
                         .requestMatchers("/payments/**").permitAll()
+                        .requestMatchers("/admin/bookings/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

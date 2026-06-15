@@ -1,10 +1,8 @@
 package com.example.sreepooja.Service.Bookings;
 
+import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
-import com.example.sreepooja.DTO.Response.Bookings.BookingDetailsResponse;
-import com.example.sreepooja.DTO.Response.Bookings.CheckoutResponse;
-import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
-import com.example.sreepooja.DTO.Response.Bookings.MyBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.*;
 import org.springframework.data.domain.Page;
 
 public interface BookingService {
@@ -22,6 +20,12 @@ public interface BookingService {
 
     BookingDetailsResponse getBookingDetails(
             Long bookingId
+    );
+
+    Page<AdminBookingResponse> getAllBookings(
+            AdminBookingFilterRequest request,
+            int page,
+            int size
     );
 
 }

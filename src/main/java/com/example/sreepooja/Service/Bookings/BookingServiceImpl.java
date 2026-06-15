@@ -1,10 +1,8 @@
 package com.example.sreepooja.Service.Bookings;
 
+import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
-import com.example.sreepooja.DTO.Response.Bookings.BookingDetailsResponse;
-import com.example.sreepooja.DTO.Response.Bookings.CheckoutResponse;
-import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
-import com.example.sreepooja.DTO.Response.Bookings.MyBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.CityPincode;
@@ -25,11 +23,13 @@ import com.example.sreepooja.Repository.Masters.StateRepository;
 import com.example.sreepooja.Repository.Poojas.ServicePackageRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Service.CustomUserDetails.CustomUserDetails;
+import com.example.sreepooja.Specification.BookingSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -422,7 +422,7 @@ public class BookingServiceImpl implements BookingService {
 
             boolean showPayBalanceButton = false;
 
-            LocalDate balancePaymentDeadline = null;
+            LocalDate balancePaymentDeadline = effectiveDate.minusDays(3);
 
             String paymentMessage = null;
 
@@ -430,9 +430,6 @@ public class BookingServiceImpl implements BookingService {
                     == PaymentStatus.PARTIALLY_PAID) {
 
                 showPayBalanceButton = true;
-
-                balancePaymentDeadline =
-                        effectiveDate.minusDays(3);
 
                 paymentMessage =
                         "Please complete the remaining payment before "
@@ -695,5 +692,106 @@ public class BookingServiceImpl implements BookingService {
                 )
 
                 .build();
+    }
+
+    @Override
+    public Page<AdminBookingResponse> getAllBookings(
+
+            AdminBookingFilterRequest request,
+
+            int page,
+
+            int size
+    ) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size
+                );
+
+        Specification<Booking> specification =
+                BookingSpecification
+                        .filterBookings(
+
+                                request.getBookingId(),
+
+                                request.getMobileNumber(),
+
+                                request.getBookingStatus(),
+
+                                request.getPaymentStatus(),
+
+                                request.getFromDate(),
+
+                                request.getToDate()
+                        );
+
+        Page<Booking> bookings =
+                bookingRepository
+                        .findAll(
+                                specification,
+                                pageable
+                        );
+
+        return bookings.map(booking -> {
+
+            LocalDate effectiveDate =
+                    booking.getConfirmedDate() != null
+                            ? booking.getConfirmedDate()
+                            : booking.getPreferredDate();
+
+            return AdminBookingResponse
+                    .builder()
+
+                    .bookingId(
+                            booking.getId()
+                    )
+
+                    .bookingNumber(
+                            booking.getBookingNumber()
+                    )
+
+                    .customerFirstName(
+                            booking.getUser()
+                                    .getFirstName()
+                    )
+
+                    .customerLastName(booking.getUser().getLastName())
+
+                    .mobileNumber(booking.getUser().getMobileNo())
+
+                    .serviceName(
+                            booking.getService()
+                                    .getServiceName()
+                    )
+
+                    .packageType(
+                            booking.getSelectedPackage()
+                                    .getPackageType()
+                    )
+
+                    .poojaDate(
+                            effectiveDate
+                    )
+
+                    .bookingStatus(
+                            booking.getBookingStatus()
+                    )
+
+                    .paymentStatus(
+                            booking.getPaymentStatus()
+                    )
+
+                    .totalAmount(
+                            booking.getTotalAmount()
+                    )
+
+                    .balanceAmount(
+                            booking.getBalanceAmount()
+                    )
+
+                    .build();
+        });
     }
 }
