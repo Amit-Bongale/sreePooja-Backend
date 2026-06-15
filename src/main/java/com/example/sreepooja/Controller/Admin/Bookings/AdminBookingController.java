@@ -1,6 +1,7 @@
 package com.example.sreepooja.Controller.Admin.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
+import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,19 @@ public class AdminBookingController {
                         request,
                         page,
                         size
+                )
+        );
+    }
+
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<AdminBookingDetailsResponse>
+    getAdminBookingDetails(
+            @PathVariable Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.getAdminBookingDetails(
+                        bookingId
                 )
         );
     }

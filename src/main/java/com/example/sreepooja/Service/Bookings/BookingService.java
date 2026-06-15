@@ -28,4 +28,9 @@ public interface BookingService {
             int size
     );
 
+    AdminBookingDetailsResponse
+    getAdminBookingDetails(
+            Long bookingId
+    );
+
 }

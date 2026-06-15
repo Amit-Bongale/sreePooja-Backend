@@ -791,7 +791,151 @@ public class BookingServiceImpl implements BookingService {
                             booking.getBalanceAmount()
                     )
 
+                    .city(
+                            booking.getCity().getCityName()
+                    )
+
+                    .state(booking.getState().getStateName())
+
+                    .preferredTimeSlot(booking.getPreferredTimeSlot())
+
                     .build();
         });
+    }
+
+    @Override
+    public AdminBookingDetailsResponse
+    getAdminBookingDetails(
+            Long bookingId
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(bookingId)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Booking not found"
+                                        )
+                        );
+
+        return AdminBookingDetailsResponse
+                .builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .customerFirstName(
+                        booking.getUser()
+                                .getFirstName()
+                )
+
+                .customerLastName(
+                        booking.getUser()
+                                .getLastName()
+                )
+
+                .mobileNumber(
+                        booking.getUser()
+                                .getMobileNo()
+                )
+
+                .serviceName(
+                        booking.getService()
+                                .getServiceName()
+                )
+
+                .packageType(
+                        booking.getSelectedPackage()
+                                .getPackageType()
+                )
+
+                .preferredLanguage(
+                        booking.getPreferredLanguage()
+                )
+
+                .preferredCommunity(
+                        booking.getPreferredCommunity()
+                )
+
+                .address(
+                        booking.getAddress()
+                )
+
+                .state(
+                        booking.getState()
+                                .getStateName()
+                )
+
+                .city(
+                        booking.getCity()
+                                .getCityName()
+                )
+
+                .pincode(
+                        booking.getPincode()
+                                .getPincode()
+                )
+
+                .preferredDate(
+                        booking.getPreferredDate()
+                )
+
+                .preferredTimeSlot(
+                        booking.getPreferredTimeSlot()
+                )
+
+                .confirmedDate(
+                        booking.getConfirmedDate()
+                )
+
+                .confirmedTime(
+                        booking.getConfirmedTime()
+                )
+
+                .priestName(
+                        booking.getPriestName()
+                )
+
+                .specialInstructions(
+                        booking.getSpecialInstructions()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .paymentStatus(
+                        booking.getPaymentStatus()
+                )
+
+                .paymentOption(
+                        booking.getPaymentOption()
+                )
+
+                .totalAmount(
+                        booking.getTotalAmount()
+                )
+
+                .advanceAmount(
+                        booking.getPaymentOption() == PaymentOption.ADVANCE
+                                ? booking.getAdvanceAmount()
+                                : null
+                )
+
+                .balanceAmount(
+                        booking.getBalanceAmount()
+                )
+
+                .bookedAt(
+                        booking.getCreatedAt()
+                )
+
+                .build();
     }
 }

@@ -2,6 +2,7 @@ package com.example.sreepooja.DTO.Response.Bookings;
 
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
+import com.example.sreepooja.Enum.Bookings.TimeSlot;
 import com.example.sreepooja.Enum.Poojas.PackageType;
 import lombok.Builder;
 import lombok.Data;
@@ -36,4 +37,10 @@ public class AdminBookingResponse {
     private BigDecimal totalAmount;
 
     private BigDecimal balanceAmount;
+
+    private String state;
+
+    private String city;
+
+    private TimeSlot preferredTimeSlot;
 }
