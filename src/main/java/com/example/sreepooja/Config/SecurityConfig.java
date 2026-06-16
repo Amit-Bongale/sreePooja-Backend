@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/bookings/**").permitAll()
                         .requestMatchers("/payments/**").permitAll()
                         .requestMatchers("/admin/bookings/**").permitAll()
+                        .requestMatchers("/admin/priests/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)
