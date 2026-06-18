@@ -97,19 +97,13 @@ public class PriestSpecification {
                 );
             }
 
-            /*
-            Uncomment later when
-            serviceCities field is added
-            */
-
-            /*
             if (cityName != null) {
 
                 predicates.add(
                         cb.like(
                                 cb.lower(
                                         root.get(
-                                                "serviceCities"
+                                                "city"
                                         )
                                 ),
                                 "%" +
@@ -118,7 +112,6 @@ public class PriestSpecification {
                         )
                 );
             }
-            */
 
             return cb.and(
                     predicates.toArray(
