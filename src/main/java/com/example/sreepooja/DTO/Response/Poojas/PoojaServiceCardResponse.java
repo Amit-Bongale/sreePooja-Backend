@@ -24,6 +24,8 @@ public class PoojaServiceCardResponse {
 
     private BigDecimal startingPrice;
 
+    private String shortDescription;
+
     private ServiceStatus status;
 
     private Boolean featured;

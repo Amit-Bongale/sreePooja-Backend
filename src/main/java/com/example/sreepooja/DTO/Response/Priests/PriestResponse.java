@@ -19,7 +19,9 @@ public class PriestResponse {
 
     private String whatsappNumber;
 
-    private String place;
+    private String city;
+
+    private String state;
 
     private String languagesSpoken;
 

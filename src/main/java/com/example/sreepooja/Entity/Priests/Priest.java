@@ -71,7 +71,10 @@ public class Priest {
     private String addressLine2;
 
     @Column(nullable = false, length = 150)
-    private String place;
+    private String city;
+
+    @Column(nullable = false, length = 150)
+    private String state;
 
     @Column(nullable = false, length = 10)
     private String pincode;

@@ -41,7 +41,10 @@ public class CreatePriestRequest {
     private String addressLine2;
 
     @NotBlank
-    private String place;
+    private String city;
+
+    @NotBlank
+    private String state;
 
     @NotBlank
     private String pincode;

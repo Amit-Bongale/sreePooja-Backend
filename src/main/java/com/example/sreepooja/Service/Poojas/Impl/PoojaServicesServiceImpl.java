@@ -1334,6 +1334,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                             .thumbnailImage(
                                     service.getThumbnailImage()
                             )
+                            .shortDescription(service.getShortDescription())
                             .startingPrice(startingPrice)
                             .featured(service.getFeatured())
                             .status(service.getStatus())
