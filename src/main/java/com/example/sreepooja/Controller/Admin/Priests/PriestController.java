@@ -2,6 +2,7 @@ package com.example.sreepooja.Controller.Admin.Priests;
 
 import com.example.sreepooja.DTO.Request.Priests.CreatePriestRequest;
 import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
+import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
 import com.example.sreepooja.Service.Priests.PriestService;
 import jakarta.validation.Valid;
@@ -57,6 +58,42 @@ public class PriestController {
                         request,
                         page,
                         size
+                )
+        );
+    }
+
+    @GetMapping("/{priestId}")
+    public ResponseEntity<PriestDetailsResponse>
+    getPriestById(
+
+            @PathVariable
+            Long priestId
+    ) {
+
+        return ResponseEntity.ok(
+                priestService
+                        .getPriestById(
+                                priestId
+                        )
+        );
+    }
+
+    @PutMapping("/{priestId}")
+    public ResponseEntity<PriestResponse>
+    updatePriest(
+
+            @PathVariable
+            Long priestId,
+
+            @Valid
+            @RequestBody
+            CreatePriestRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                priestService.updatePriest(
+                        priestId,
+                        request
                 )
         );
     }

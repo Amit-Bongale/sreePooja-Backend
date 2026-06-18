@@ -1,7 +1,7 @@
 package com.example.sreepooja.Entity.Priests;
 
+import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Enum.Priests.PriestExperience;
-import com.example.sreepooja.Enum.Priests.Trimathastharu;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -82,9 +82,12 @@ public class Priest {
     @Column(length = 500)
     private String languagesSpoken;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Trimathastharu trimathastharu;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "community_id",
+            nullable = false
+    )
+    private Community community;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

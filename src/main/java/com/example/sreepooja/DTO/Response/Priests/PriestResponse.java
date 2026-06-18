@@ -1,7 +1,6 @@
 package com.example.sreepooja.DTO.Response.Priests;
 
 import com.example.sreepooja.Enum.Priests.PriestExperience;
-import com.example.sreepooja.Enum.Priests.Trimathastharu;
 import lombok.Builder;
 import lombok.Data;
 
@@ -25,7 +24,9 @@ public class PriestResponse {
 
     private String languagesSpoken;
 
-    private Trimathastharu trimathastharu;
+    private Long communityId;
+
+    private String communityName;
 
     private PriestExperience experience;
 

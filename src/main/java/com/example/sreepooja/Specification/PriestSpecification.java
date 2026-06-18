@@ -2,7 +2,6 @@ package com.example.sreepooja.Specification;
 
 import com.example.sreepooja.Entity.Priests.Priest;
 import com.example.sreepooja.Enum.Priests.PriestExperience;
-import com.example.sreepooja.Enum.Priests.Trimathastharu;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -16,9 +15,11 @@ public class PriestSpecification {
 
             Boolean active,
 
+            String name,
+
             String mobileNumber,
 
-            Trimathastharu trimathastharu,
+            Long communityId,
 
             PriestExperience experience,
 
@@ -42,6 +43,58 @@ public class PriestSpecification {
                 );
             }
 
+            if (name != null &&
+                    !name.isBlank()) {
+
+                String search =
+                        "%" +
+                                name.toLowerCase()
+                                + "%";
+
+                predicates.add(
+
+                        cb.or(
+
+                                cb.like(
+                                        cb.lower(
+                                                root.get(
+                                                        "firstName"
+                                                )
+                                        ),
+                                        search
+                                ),
+
+                                cb.like(
+                                        cb.lower(
+                                                root.get(
+                                                        "lastName"
+                                                )
+                                        ),
+                                        search
+                                ),
+
+                                cb.like(
+                                        cb.lower(
+                                                cb.concat(
+
+                                                        cb.concat(
+                                                                root.get(
+                                                                        "firstName"
+                                                                ),
+                                                                " "
+                                                        ),
+
+                                                        root.get(
+                                                                "lastName"
+                                                        )
+                                                )
+                                        ),
+                                        search
+                                )
+                        )
+                );
+            }
+
             if (mobileNumber != null &&
                     !mobileNumber.isBlank()) {
 
@@ -57,14 +110,13 @@ public class PriestSpecification {
                 );
             }
 
-            if (trimathastharu != null) {
+            if (communityId != null) {
 
                 predicates.add(
                         cb.equal(
-                                root.get(
-                                        "trimathastharu"
-                                ),
-                                trimathastharu
+                                root.get("community")
+                                        .get("id"),
+                                communityId
                         )
                 );
             }

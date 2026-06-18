@@ -2,11 +2,14 @@ package com.example.sreepooja.Service.Priests;
 
 import com.example.sreepooja.DTO.Request.Priests.CreatePriestRequest;
 import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
+import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
+import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Entity.Priests.Priest;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Masters.CityRepository;
+import com.example.sreepooja.Repository.Masters.CommunityRepository;
 import com.example.sreepooja.Repository.Masters.LanguageRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Specification.PriestSpecification;
@@ -27,20 +30,19 @@ public class PriestServiceImpl implements PriestService {
     private final PriestRepository priestRepository;
     private final LanguageRepository languageRepository;
     private final CityRepository cityRepository;
+    private final CommunityRepository communityRepository;
 
     @Override
     @Transactional
     public PriestResponse createPriest(
             CreatePriestRequest request
     ) {
-
-        if (priestRepository
-                .existsByMobileNumber(
-                        request.getMobileNumber()
-                )) {
-
+        if (priestRepository.existsDuplicateNumbers(
+                request.getMobileNumber(),
+                request.getWhatsappNumber()
+        )) {
             throw new BadRequestException(
-                    "Mobile number already exists"
+                    "Mobile number or WhatsApp number already exists"
             );
         }
 
@@ -53,6 +55,17 @@ public class PriestServiceImpl implements PriestService {
                     "Aadhaar number already exists"
             );
         }
+
+        Community community =
+                communityRepository
+                        .findById(
+                                request.getCommunityId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                )
+                        );
 
         Priest priest =
                 Priest.builder()
@@ -118,14 +131,12 @@ public class PriestServiceImpl implements PriestService {
                         )
 
                         .languagesSpoken(
-                        StringCommaUtil.normalizeCommaSeparatedValues(
+                                StringCommaUtil.normalizeCommaSeparatedValues(
                                         request.getLanguagesSpoken()
                                 )
                         )
 
-                        .trimathastharu(
-                                request.getTrimathastharu()
-                        )
+                        .community(community)
 
                         .experience(
                                 request.getExperience()
@@ -219,9 +230,11 @@ public class PriestServiceImpl implements PriestService {
 
                                 request.getActive(),
 
+                                request.getName(),
+
                                 request.getMobileNumber(),
 
-                                request.getTrimathastharu(),
+                                request.getCommunityId(),
 
                                 request.getExperience(),
 
@@ -272,8 +285,8 @@ public class PriestServiceImpl implements PriestService {
                                 priest.getLanguagesSpoken()
                         )
 
-                        .trimathastharu(
-                                priest.getTrimathastharu()
+                        .communityId(
+                                priest.getCommunity().getId()
                         )
 
                         .experience(
@@ -286,5 +299,287 @@ public class PriestServiceImpl implements PriestService {
 
                         .build()
         );
+    }
+
+    @Override
+    public PriestDetailsResponse getPriestById(
+            Long priestId
+    ) {
+
+        Priest priest =
+                priestRepository
+                        .findById(priestId)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Priest not found"
+                                        )
+                        );
+
+        return PriestDetailsResponse
+                .builder()
+
+                .priestId(
+                        priest.getId()
+                )
+
+                .firstName(
+                        priest.getFirstName()
+                )
+
+                .lastName(
+                        priest.getLastName()
+                )
+
+                .age(
+                        priest.getAge()
+                )
+
+                .gothra(
+                        priest.getGothra()
+                )
+
+                .pravara(
+                        priest.getPravara()
+                )
+
+                .nativePlace(
+                        priest.getNativePlace()
+                )
+
+                .aadhaarNumber(
+                        priest.getAadhaarNumber()
+                )
+
+                .mobileNumber(
+                        priest.getMobileNumber()
+                )
+
+                .whatsappNumber(
+                        priest.getWhatsappNumber()
+                )
+
+                .email(
+                        priest.getEmail()
+                )
+
+                .addressLine1(
+                        priest.getAddressLine1()
+                )
+
+                .addressLine2(
+                        priest.getAddressLine2()
+                )
+
+                .city(
+                        priest.getCity()
+                )
+
+                .pincode(
+                        priest.getPincode()
+                )
+
+                .languagesSpoken(
+                        priest.getLanguagesSpoken()
+                )
+
+                .communityId(priest.getCommunity().getId())
+
+                .experience(
+                        priest.getExperience()
+                )
+
+                .referredBy(
+                        priest.getReferredBy()
+                )
+
+                .active(
+                        priest.getActive()
+                )
+
+                .createdAt(
+                        priest.getCreatedAt()
+                )
+
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public PriestResponse updatePriest(
+
+            Long priestId,
+
+            CreatePriestRequest request
+    ) {
+
+        Priest priest =
+                priestRepository
+                        .findById(priestId)
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Priest not found"
+                                        )
+                        );
+
+        if (priestRepository.existsDuplicateNumbers(
+                priestId,
+                request.getMobileNumber(),
+                request.getWhatsappNumber()
+        )) {
+            throw new BadRequestException(
+                    "Mobile number or WhatsApp number already exists"
+            );
+        }
+
+        if (!priest.getAadhaarNumber()
+                .equals(request.getAadhaarNumber())
+                && priestRepository
+                .existsByAadhaarNumber(
+                        request.getAadhaarNumber()
+                )) {
+
+            throw new BadRequestException(
+                    "Aadhaar number already exists"
+            );
+        }
+
+        Community community =
+                communityRepository
+                        .findById(
+                                request.getCommunityId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                )
+                        );
+
+        priest.setFirstName(
+                request.getFirstName()
+        );
+
+        priest.setLastName(
+                request.getLastName()
+        );
+
+        priest.setAge(
+                request.getAge()
+        );
+
+        priest.setGothra(
+                request.getGothra()
+        );
+
+        priest.setPravara(
+                request.getPravara()
+        );
+
+        priest.setNativePlace(
+                request.getNativePlace()
+        );
+
+        priest.setAadhaarNumber(
+                request.getAadhaarNumber()
+        );
+
+        priest.setMobileNumber(
+                request.getMobileNumber()
+        );
+
+        priest.setWhatsappNumber(
+                request.getWhatsappNumber()
+        );
+
+        priest.setEmail(
+                request.getEmail()
+        );
+
+        priest.setAddressLine1(
+                request.getAddressLine1()
+        );
+
+        priest.setAddressLine2(
+                request.getAddressLine2()
+        );
+
+        priest.setCity(
+                request.getCity()
+        );
+
+        priest.setPincode(
+                request.getPincode()
+        );
+
+        priest.setLanguagesSpoken(
+                StringCommaUtil
+                        .normalizeCommaSeparatedValues(
+                                request.getLanguagesSpoken()
+                        )
+        );
+
+        priest.setCommunity(
+                community
+        );
+
+        priest.setExperience(
+                request.getExperience()
+        );
+
+        priest.setReferredBy(
+                request.getReferredBy()
+        );
+
+        priest.setActive(
+                request.getActive()
+        );
+
+        priestRepository.save(
+                priest
+        );
+
+        return PriestResponse
+                .builder()
+
+                .priestId(
+                        priest.getId()
+                )
+
+                .firstName(
+                        priest.getFirstName()
+                )
+
+                .lastName(
+                        priest.getLastName()
+                )
+
+                .mobileNumber(
+                        priest.getMobileNumber()
+                )
+
+                .whatsappNumber(
+                        priest.getWhatsappNumber()
+                )
+
+                .city(
+                        priest.getCity()
+                )
+
+                .languagesSpoken(
+                        priest.getLanguagesSpoken()
+                )
+
+                .communityId(priest.getCommunity().getId())
+
+                .experience(
+                        priest.getExperience()
+                )
+
+                .active(
+                        priest.getActive()
+                )
+
+                .build();
     }
 }
