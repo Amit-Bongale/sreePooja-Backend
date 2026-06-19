@@ -44,7 +44,17 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
             Pageable pageable
     );
 
-
     boolean existsByMobileNo(String mobile);
+
+    @Query("""
+       SELECT COUNT(u) > 0
+       FROM Users u
+       WHERE u.mobileNo = :mobile
+          OR u.mobileNo = :whatsapp
+       """)
+    boolean existsDuplicateNumbers(
+            @Param("mobile") String mobile,
+            @Param("whatsapp") String whatsapp
+    );
 
 }

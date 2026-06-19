@@ -12,6 +12,7 @@ import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.CommunityRepository;
 import com.example.sreepooja.Repository.Masters.LanguageRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
+import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Specification.PriestSpecification;
 import com.example.sreepooja.Utility.StringCommaUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PriestServiceImpl implements PriestService {
 
     private final PriestRepository priestRepository;
+    private final UsersRepository usersRepository;
     private final LanguageRepository languageRepository;
     private final CityRepository cityRepository;
     private final CommunityRepository communityRepository;
@@ -41,8 +43,19 @@ public class PriestServiceImpl implements PriestService {
                 request.getMobileNumber(),
                 request.getWhatsappNumber()
         )) {
+
             throw new BadRequestException(
                     "Mobile number or WhatsApp number already exists"
+            );
+        }
+
+        if (usersRepository.existsDuplicateNumbers(
+                request.getMobileNumber(),
+                request.getWhatsappNumber()
+        )) {
+
+            throw new BadRequestException(
+                    "Mobile number or WhatsApp number already belongs to a user"
             );
         }
 
@@ -432,6 +445,15 @@ public class PriestServiceImpl implements PriestService {
         )) {
             throw new BadRequestException(
                     "Mobile number or WhatsApp number already exists"
+            );
+        }
+
+        if (usersRepository.existsDuplicateNumbers(
+                request.getMobileNumber(),
+                request.getWhatsappNumber()
+        )) {
+            throw new BadRequestException(
+                    "Mobile number or WhatsApp number already belongs to a user"
             );
         }
 
