@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class CreatePriestRequest {
 
@@ -14,7 +16,7 @@ public class CreatePriestRequest {
     private String lastName;
 
     @NotNull
-    private Integer age;
+    private LocalDate dob;
 
     @NotBlank
     private String gothra;

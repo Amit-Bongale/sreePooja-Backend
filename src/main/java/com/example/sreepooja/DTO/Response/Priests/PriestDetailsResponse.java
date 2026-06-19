@@ -4,6 +4,7 @@ import com.example.sreepooja.Enum.Priests.PriestExperience;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,7 +17,7 @@ public class PriestDetailsResponse {
 
     private String lastName;
 
-    private Integer age;
+    private LocalDate dob;
 
     private String gothra;
 
@@ -37,6 +38,8 @@ public class PriestDetailsResponse {
     private String addressLine2;
 
     private String city;
+
+    private String state;
 
     private String pincode;
 

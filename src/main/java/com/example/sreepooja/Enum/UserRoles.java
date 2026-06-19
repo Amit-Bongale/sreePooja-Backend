@@ -5,6 +5,8 @@ public enum UserRoles {
 
     USER,
 
+    PRIEST,
+
     //staff
     STAFF,
     Operations_Manager,

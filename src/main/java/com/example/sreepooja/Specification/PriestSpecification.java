@@ -33,6 +33,9 @@ public class PriestSpecification {
             List<Predicate> predicates =
                     new ArrayList<>();
 
+            var userJoin =
+                    root.join("user");
+
             if (active != null) {
 
                 predicates.add(
@@ -57,7 +60,7 @@ public class PriestSpecification {
 
                                 cb.like(
                                         cb.lower(
-                                                root.get(
+                                                userJoin.get(
                                                         "firstName"
                                                 )
                                         ),
@@ -66,7 +69,7 @@ public class PriestSpecification {
 
                                 cb.like(
                                         cb.lower(
-                                                root.get(
+                                                userJoin.get(
                                                         "lastName"
                                                 )
                                         ),
@@ -78,13 +81,13 @@ public class PriestSpecification {
                                                 cb.concat(
 
                                                         cb.concat(
-                                                                root.get(
+                                                                userJoin.get(
                                                                         "firstName"
                                                                 ),
                                                                 " "
                                                         ),
 
-                                                        root.get(
+                                                        userJoin.get(
                                                                 "lastName"
                                                         )
                                                 )
@@ -100,8 +103,8 @@ public class PriestSpecification {
 
                 predicates.add(
                         cb.like(
-                                root.get(
-                                        "mobileNumber"
+                                userJoin.get(
+                                        "mobileNo"
                                 ),
                                 "%" +
                                         mobileNumber +
@@ -133,7 +136,8 @@ public class PriestSpecification {
                 );
             }
 
-            if (languageName != null) {
+            if (languageName != null &&
+                    !languageName.isBlank()) {
 
                 predicates.add(
                         cb.like(
@@ -149,7 +153,8 @@ public class PriestSpecification {
                 );
             }
 
-            if (cityName != null) {
+            if (cityName != null &&
+                    !cityName.isBlank()) {
 
                 predicates.add(
                         cb.like(
@@ -159,8 +164,8 @@ public class PriestSpecification {
                                         )
                                 ),
                                 "%" +
-                                cityName.toLowerCase()
-                                + "%"
+                                        cityName.toLowerCase()
+                                        + "%"
                         )
                 );
             }
@@ -169,7 +174,7 @@ public class PriestSpecification {
                     predicates.toArray(
                             new Predicate[0]
                     )
-            );
+                    );
         };
     }
 }

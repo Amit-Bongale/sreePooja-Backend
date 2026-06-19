@@ -1,6 +1,7 @@
 package com.example.sreepooja.Entity.Priests;
 
 import com.example.sreepooja.Entity.Masters.Community;
+import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Priests.PriestExperience;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,10 +14,6 @@ import java.time.LocalDateTime;
 @Table(
         name = "priests",
         indexes = {
-                @Index(
-                        name = "idx_priest_mobile",
-                        columnList = "mobileNumber"
-                ),
                 @Index(
                         name = "idx_priest_aadhaar",
                         columnList = "aadhaarNumber"
@@ -34,14 +31,14 @@ public class Priest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String firstName;
-
-    @Column(length = 100)
-    private String lastName;
-
-    @Column(nullable = false)
-    private Integer age;
+    @OneToOne(fetch = FetchType.LAZY,
+            optional = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true
+    )
+    private Users user;
 
     @Column(nullable = false, length = 100)
     private String gothra;
@@ -55,14 +52,8 @@ public class Priest {
     @Column(nullable = false, unique = true, length = 20)
     private String aadhaarNumber;
 
-    @Column(nullable = false, unique = true, length = 15)
-    private String mobileNumber;
-
     @Column(length = 15)
     private String whatsappNumber;
-
-    @Column(length = 150)
-    private String email;
 
     @Column(nullable = false, length = 500)
     private String addressLine1;

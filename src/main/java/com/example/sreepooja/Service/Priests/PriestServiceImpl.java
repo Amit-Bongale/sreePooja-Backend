@@ -6,12 +6,16 @@ import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
 import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Entity.Priests.Priest;
+import com.example.sreepooja.Entity.UserRole;
+import com.example.sreepooja.Entity.Users;
+import com.example.sreepooja.Enum.UserRoles;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.CommunityRepository;
 import com.example.sreepooja.Repository.Masters.LanguageRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
+import com.example.sreepooja.Repository.Users.UserRoleRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Specification.PriestSpecification;
 import com.example.sreepooja.Utility.StringCommaUtil;
@@ -24,12 +28,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class PriestServiceImpl implements PriestService {
 
     private final PriestRepository priestRepository;
     private final UsersRepository usersRepository;
+    private final UserRoleRepository userRoleRepository;
     private final LanguageRepository languageRepository;
     private final CityRepository cityRepository;
     private final CommunityRepository communityRepository;
@@ -39,23 +46,36 @@ public class PriestServiceImpl implements PriestService {
     public PriestResponse createPriest(
             CreatePriestRequest request
     ) {
-        if (priestRepository.existsDuplicateNumbers(
-                request.getMobileNumber(),
-                request.getWhatsappNumber()
+
+        if (usersRepository.existsByMobileNo(
+                request.getMobileNumber()
         )) {
 
             throw new BadRequestException(
-                    "Mobile number or WhatsApp number already exists"
+                    "Mobile number already exists"
             );
         }
 
-        if (usersRepository.existsDuplicateNumbers(
-                request.getMobileNumber(),
-                request.getWhatsappNumber()
-        )) {
+        if (request.getWhatsappNumber() != null
+                &&
+                priestRepository
+                        .existsByWhatsappNumber(
+                                request.getWhatsappNumber()
+                        )) {
 
             throw new BadRequestException(
-                    "Mobile number or WhatsApp number already belongs to a user"
+                    "WhatsApp number already exists"
+            );
+        }
+
+        if (request.getWhatsappNumber() != null
+                &&
+                usersRepository.existsByMobileNo(
+                        request.getWhatsappNumber()
+                )) {
+
+            throw new BadRequestException(
+                    "WhatsApp number already belongs to another user"
             );
         }
 
@@ -74,25 +94,65 @@ public class PriestServiceImpl implements PriestService {
                         .findById(
                                 request.getCommunityId()
                         )
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Community not found"
-                                )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Community not found"
+                                        )
                         );
 
+        /*
+         * Create User
+         */
+        Users user = new Users();
+
+        user.setFirstName(
+                request.getFirstName()
+        );
+
+        user.setLastName(
+                request.getLastName()
+        );
+
+        user.setMobileNo(
+                request.getMobileNumber()
+        );
+
+        user.setEmail(
+                request.getEmail()
+        );
+
+        user.setDob(
+                request.getDob()
+        );
+
+        usersRepository.save(
+                user
+        );
+
+        UserRole userRole =
+                new UserRole();
+
+        userRole.setRole(
+                UserRoles.PRIEST
+        );
+
+        userRole.setUser(
+                user
+        );
+
+        userRoleRepository.save(
+                userRole
+        );
+
+        /*
+         * Create Priest
+         */
         Priest priest =
                 Priest.builder()
 
-                        .firstName(
-                                request.getFirstName()
-                        )
-
-                        .lastName(
-                                request.getLastName()
-                        )
-
-                        .age(
-                                request.getAge()
+                        .user(
+                                user
                         )
 
                         .gothra(
@@ -111,16 +171,8 @@ public class PriestServiceImpl implements PriestService {
                                 request.getAadhaarNumber()
                         )
 
-                        .mobileNumber(
-                                request.getMobileNumber()
-                        )
-
                         .whatsappNumber(
                                 request.getWhatsappNumber()
-                        )
-
-                        .email(
-                                request.getEmail()
                         )
 
                         .addressLine1(
@@ -144,12 +196,15 @@ public class PriestServiceImpl implements PriestService {
                         )
 
                         .languagesSpoken(
-                                StringCommaUtil.normalizeCommaSeparatedValues(
-                                        request.getLanguagesSpoken()
-                                )
+                                StringCommaUtil
+                                        .normalizeCommaSeparatedValues(
+                                                request.getLanguagesSpoken()
+                                        )
                         )
 
-                        .community(community)
+                        .community(
+                                community
+                        )
 
                         .experience(
                                 request.getExperience()
@@ -160,7 +215,9 @@ public class PriestServiceImpl implements PriestService {
                         )
 
                         .active(
-                                true
+                                request.getActive() != null
+                                        ? request.getActive()
+                                        : true
                         )
 
                         .build();
@@ -176,8 +233,44 @@ public class PriestServiceImpl implements PriestService {
                         priest.getId()
                 )
 
+                .firstName(
+                        user.getFirstName()
+                )
+
+                .lastName(
+                        user.getLastName()
+                )
+
                 .mobileNumber(
-                        priest.getMobileNumber()
+                        user.getMobileNo()
+                )
+
+                .whatsappNumber(
+                        priest.getWhatsappNumber()
+                )
+
+                .city(
+                        priest.getCity()
+                )
+
+                .state(
+                        priest.getState()
+                )
+
+                .languagesSpoken(
+                        priest.getLanguagesSpoken()
+                )
+
+                .communityId(
+                        community.getId()
+                )
+
+                .experience(
+                        priest.getExperience()
+                )
+
+                .active(
+                        priest.getActive()
                 )
 
                 .build();
@@ -197,8 +290,8 @@ public class PriestServiceImpl implements PriestService {
                 PageRequest.of(
                         page,
                         size,
-                        Sort.by("firstName")
-                                .ascending()
+                        Sort.by("createdAt")
+                                .descending()
                 );
 
         String languageName = null;
@@ -263,55 +356,66 @@ public class PriestServiceImpl implements PriestService {
                                 pageable
                         );
 
-        return priests.map(priest ->
-                PriestResponse.builder()
+        return priests.map(priest -> {
 
-                        .priestId(
-                                priest.getId()
-                        )
+            Users user =
+                    priest.getUser();
 
-                        .firstName(
-                                priest.getFirstName()
-                        )
+            return PriestResponse
+                    .builder()
 
-                        .lastName(
-                                priest.getLastName()
-                        )
+                    .priestId(
+                            priest.getId()
+                    )
 
-                        .mobileNumber(
-                                priest.getMobileNumber()
-                        )
+                    .firstName(
+                            user.getFirstName()
+                    )
 
-                        .whatsappNumber(
-                                priest.getWhatsappNumber()
-                        )
+                    .lastName(
+                            user.getLastName()
+                    )
 
-                        .city(
-                                priest.getCity()
-                        )
+                    .mobileNumber(
+                            user.getMobileNo()
+                    )
 
-                        .state(
-                                priest.getState()
-                        )
+                    .whatsappNumber(
+                            priest.getWhatsappNumber()
+                    )
 
-                        .languagesSpoken(
-                                priest.getLanguagesSpoken()
-                        )
+                    .city(
+                            priest.getCity()
+                    )
 
-                        .communityId(
-                                priest.getCommunity().getId()
-                        )
+                    .state(
+                            priest.getState()
+                    )
 
-                        .experience(
-                                priest.getExperience()
-                        )
+                    .languagesSpoken(
+                            priest.getLanguagesSpoken()
+                    )
 
-                        .active(
-                                priest.getActive()
-                        )
+                    .communityId(
+                            priest.getCommunity()
+                                    .getId()
+                    )
 
-                        .build()
-        );
+                    .communityName(
+                            priest.getCommunity()
+                                    .getCommunityName()
+                    )
+
+                    .experience(
+                            priest.getExperience()
+                    )
+
+                    .active(
+                            priest.getActive()
+                    )
+
+                    .build();
+        });
     }
 
     @Override
@@ -329,6 +433,9 @@ public class PriestServiceImpl implements PriestService {
                                         )
                         );
 
+        Users user =
+                priest.getUser();
+
         return PriestDetailsResponse
                 .builder()
 
@@ -337,15 +444,15 @@ public class PriestServiceImpl implements PriestService {
                 )
 
                 .firstName(
-                        priest.getFirstName()
+                        user.getFirstName()
                 )
 
                 .lastName(
-                        priest.getLastName()
+                        user.getLastName()
                 )
 
-                .age(
-                        priest.getAge()
+                .dob(
+                        user.getDob()
                 )
 
                 .gothra(
@@ -365,7 +472,7 @@ public class PriestServiceImpl implements PriestService {
                 )
 
                 .mobileNumber(
-                        priest.getMobileNumber()
+                        user.getMobileNo()
                 )
 
                 .whatsappNumber(
@@ -373,7 +480,7 @@ public class PriestServiceImpl implements PriestService {
                 )
 
                 .email(
-                        priest.getEmail()
+                        user.getEmail()
                 )
 
                 .addressLine1(
@@ -388,6 +495,10 @@ public class PriestServiceImpl implements PriestService {
                         priest.getCity()
                 )
 
+                .state(
+                        priest.getState()
+                )
+
                 .pincode(
                         priest.getPincode()
                 )
@@ -396,9 +507,15 @@ public class PriestServiceImpl implements PriestService {
                         priest.getLanguagesSpoken()
                 )
 
-                .communityId(priest.getCommunity().getId())
+                .communityId(
+                        priest.getCommunity()
+                                .getId()
+                )
 
-                .communityName(priest.getCommunity().getCommunityName())
+                .communityName(
+                        priest.getCommunity()
+                                .getCommunityName()
+                )
 
                 .experience(
                         priest.getExperience()
@@ -438,31 +555,69 @@ public class PriestServiceImpl implements PriestService {
                                         )
                         );
 
-        if (priestRepository.existsDuplicateNumbers(
-                priestId,
-                request.getMobileNumber(),
-                request.getWhatsappNumber()
-        )) {
-            throw new BadRequestException(
-                    "Mobile number or WhatsApp number already exists"
-            );
+        Users user =
+                priest.getUser();
+
+        if (!user.getMobileNo()
+                .equals(
+                        request.getMobileNumber()
+                )) {
+
+            if (usersRepository.existsByMobileNo(
+                    request.getMobileNumber()
+            )) {
+
+                throw new BadRequestException(
+                        "Mobile number already exists"
+                );
+            }
+
+            if (priestRepository
+                    .existsByWhatsappNumber(
+                            request.getMobileNumber()
+                    )) {
+
+                throw new BadRequestException(
+                        "Mobile number already exists"
+                );
+            }
         }
 
-        if (usersRepository.existsDuplicateNumbers(
-                request.getMobileNumber(),
+        if (!Objects.equals(
+                priest.getWhatsappNumber(),
                 request.getWhatsappNumber()
         )) {
-            throw new BadRequestException(
-                    "Mobile number or WhatsApp number already belongs to a user"
-            );
+
+            if (usersRepository.existsByMobileNo(
+                    request.getWhatsappNumber()
+            )) {
+
+                throw new BadRequestException(
+                        "WhatsApp number already exists"
+                );
+            }
+
+            if (priestRepository
+                    .existsByWhatsappNumberAndIdNot(
+                            request.getWhatsappNumber(),
+                            priestId
+                    )) {
+
+                throw new BadRequestException(
+                        "WhatsApp number already exists"
+                );
+            }
         }
 
         if (!priest.getAadhaarNumber()
-                .equals(request.getAadhaarNumber())
-                && priestRepository
-                .existsByAadhaarNumber(
+                .equals(
                         request.getAadhaarNumber()
-                )) {
+                )
+                &&
+                priestRepository
+                        .existsByAadhaarNumber(
+                                request.getAadhaarNumber()
+                        )) {
 
             throw new BadRequestException(
                     "Aadhaar number already exists"
@@ -474,23 +629,33 @@ public class PriestServiceImpl implements PriestService {
                         .findById(
                                 request.getCommunityId()
                         )
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Community not found"
-                                )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Community not found"
+                                        )
                         );
 
-        priest.setFirstName(
+        user.setFirstName(
                 request.getFirstName()
         );
 
-        priest.setLastName(
+        user.setLastName(
                 request.getLastName()
         );
 
-        priest.setAge(
-                request.getAge()
+        user.setMobileNo(
+                request.getMobileNumber()
         );
+
+        user.setEmail(
+                request.getEmail()
+        );
+
+        user.setDob(
+                request.getDob()
+        );
+
 
         priest.setGothra(
                 request.getGothra()
@@ -508,16 +673,8 @@ public class PriestServiceImpl implements PriestService {
                 request.getAadhaarNumber()
         );
 
-        priest.setMobileNumber(
-                request.getMobileNumber()
-        );
-
         priest.setWhatsappNumber(
                 request.getWhatsappNumber()
-        );
-
-        priest.setEmail(
-                request.getEmail()
         );
 
         priest.setAddressLine1(
@@ -530,6 +687,10 @@ public class PriestServiceImpl implements PriestService {
 
         priest.setCity(
                 request.getCity()
+        );
+
+        priest.setState(
+                request.getState()
         );
 
         priest.setPincode(
@@ -571,15 +732,15 @@ public class PriestServiceImpl implements PriestService {
                 )
 
                 .firstName(
-                        priest.getFirstName()
+                        user.getFirstName()
                 )
 
                 .lastName(
-                        priest.getLastName()
+                        user.getLastName()
                 )
 
                 .mobileNumber(
-                        priest.getMobileNumber()
+                        user.getMobileNo()
                 )
 
                 .whatsappNumber(
@@ -590,11 +751,18 @@ public class PriestServiceImpl implements PriestService {
                         priest.getCity()
                 )
 
+                .state(
+                        priest.getState()
+                )
+
                 .languagesSpoken(
                         priest.getLanguagesSpoken()
                 )
 
-                .communityId(priest.getCommunity().getId())
+                .communityId(
+                        priest.getCommunity()
+                                .getId()
+                )
 
                 .experience(
                         priest.getExperience()
