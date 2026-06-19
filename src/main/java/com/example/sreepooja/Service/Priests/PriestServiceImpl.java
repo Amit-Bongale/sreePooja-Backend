@@ -385,6 +385,8 @@ public class PriestServiceImpl implements PriestService {
 
                 .communityId(priest.getCommunity().getId())
 
+                .communityName(priest.getCommunity().getCommunityName())
+
                 .experience(
                         priest.getExperience()
                 )
