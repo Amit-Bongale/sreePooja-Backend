@@ -9,9 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -49,7 +49,7 @@ public class AdminBookingDetailsResponse {
 
     private LocalDate confirmedDate;
 
-    private Time confirmedTime;
+    private LocalTime confirmedTime;
 
     private String priestName;
 

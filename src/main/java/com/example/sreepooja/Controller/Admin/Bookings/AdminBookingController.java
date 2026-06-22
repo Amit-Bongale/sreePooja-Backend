@@ -1,9 +1,12 @@
 package com.example.sreepooja.Controller.Admin.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
+import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.ConfirmBookingResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +56,28 @@ public class AdminBookingController {
         return ResponseEntity.ok(
                 bookingService.getAdminBookingDetails(
                         bookingId
+                )
+        );
+    }
+
+    @PutMapping(
+            "/{bookingId}/confirm"
+    )
+    public ResponseEntity<ConfirmBookingResponse>
+    confirmBooking(
+
+            @PathVariable
+            Long bookingId,
+
+            @Valid
+            @RequestBody
+            ConfirmBookingRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.confirmBooking(
+                        bookingId,
+                        request
                 )
         );
     }

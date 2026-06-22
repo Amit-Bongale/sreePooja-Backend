@@ -1,6 +1,7 @@
 package com.example.sreepooja.Service.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
+import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.*;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,11 @@ public interface BookingService {
     AdminBookingDetailsResponse
     getAdminBookingDetails(
             Long bookingId
+    );
+
+    ConfirmBookingResponse confirmBooking(
+            Long bookingId,
+            ConfirmBookingRequest request
     );
 
 }

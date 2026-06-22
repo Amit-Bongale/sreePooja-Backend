@@ -5,6 +5,7 @@ import com.example.sreepooja.Entity.Masters.CityPincode;
 import com.example.sreepooja.Entity.Masters.State;
 import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Entity.Poojas.ServicePackage;
+import com.example.sreepooja.Entity.Priests.Priest;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
@@ -16,9 +17,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(
@@ -64,10 +65,11 @@ public class Booking {
 
     private LocalDate confirmedDate;
 
-    private Time confirmedTime;
+    private LocalTime confirmedTime;
 
-    @Column(length = 150)
-    private String priestName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "priest_id")
+    private Priest priest;
 
     @Column(length = 100)
     private String preferredLanguage;

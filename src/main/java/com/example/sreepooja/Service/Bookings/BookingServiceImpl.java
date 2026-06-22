@@ -1,6 +1,7 @@
 package com.example.sreepooja.Service.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
+import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.Entity.Bookings.Booking;
@@ -9,6 +10,7 @@ import com.example.sreepooja.Entity.Masters.CityPincode;
 import com.example.sreepooja.Entity.Masters.State;
 import com.example.sreepooja.Entity.Poojas.PoojaServices;
 import com.example.sreepooja.Entity.Poojas.ServicePackage;
+import com.example.sreepooja.Entity.Priests.Priest;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
@@ -21,6 +23,7 @@ import com.example.sreepooja.Repository.Masters.CityPincodeRepository;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.StateRepository;
 import com.example.sreepooja.Repository.Poojas.ServicePackageRepository;
+    import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Service.CustomUserDetails.CustomUserDetails;
 import com.example.sreepooja.Specification.BookingSpecification;
@@ -53,6 +56,8 @@ public class BookingServiceImpl implements BookingService {
     private final CityPincodeRepository cityPincodeRepository;
 
     private final UsersRepository usersRepository;
+
+    private final PriestRepository priestRepository;
 
     @Override
     public CheckoutResponse getCheckout(Long packageId) {
@@ -436,6 +441,8 @@ public class BookingServiceImpl implements BookingService {
                                 + balancePaymentDeadline +" for booking to be valid";
             }
 
+            String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+
             return MyBookingResponse.builder()
 
                     .bookingId(
@@ -497,7 +504,7 @@ public class BookingServiceImpl implements BookingService {
                             paymentMessage
                     )
 
-                    .priestName(booking.getPriestName())
+                    .priestName(priestName)
 
                     .address(booking.getAddress())
 
@@ -567,6 +574,8 @@ public class BookingServiceImpl implements BookingService {
                             + " for booking to be valid";
         }
 
+        String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+
         return BookingDetailsResponse.builder()
 
                 .bookingId(
@@ -620,8 +629,7 @@ public class BookingServiceImpl implements BookingService {
                         booking.getConfirmedTime()
                 )
 
-                .priestName(
-                        booking.getPriestName()
+                .priestName(priestName
                 )
 
                 .preferredLanguage(
@@ -819,6 +827,8 @@ public class BookingServiceImpl implements BookingService {
                                         )
                         );
 
+        String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+
         return AdminBookingDetailsResponse
                 .builder()
 
@@ -898,9 +908,7 @@ public class BookingServiceImpl implements BookingService {
                         booking.getConfirmedTime()
                 )
 
-                .priestName(
-                        booking.getPriestName()
-                )
+                .priestName(priestName)
 
                 .specialInstructions(
                         booking.getSpecialInstructions()
@@ -938,4 +946,108 @@ public class BookingServiceImpl implements BookingService {
 
                 .build();
     }
+
+    @Override
+    @Transactional
+    public ConfirmBookingResponse confirmBooking(
+
+            Long bookingId,
+
+            ConfirmBookingRequest request
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(
+                                bookingId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Booking not found"
+                                        )
+                        );
+
+        if (booking.getBookingStatus()
+                == BookingStatus.CANCELLED) {
+
+            throw new BadRequestException(
+                    "Cancelled booking cannot be confirmed"
+            );
+        }
+
+        Priest priest =
+                priestRepository
+                        .findById(
+                                request.getPriestId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Priest not found"
+                                        )
+                        );
+
+        if (!priest.getActive()) {
+
+            throw new BadRequestException(
+                    "Selected priest is inactive"
+            );
+        }
+
+        booking.setPriest(
+                priest
+        );
+
+        booking.setConfirmedDate(
+                request.getConfirmedDate()
+        );
+
+        booking.setConfirmedTime(
+                request.getConfirmedTime()
+        );
+
+        booking.setBookingStatus(
+                BookingStatus.CONFIRMED
+        );
+
+        bookingRepository.save(
+                booking
+        );
+
+        return ConfirmBookingResponse
+                .builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .priestName(
+                        priest.getUser()
+                                .getFirstName()
+                                + " "
+                                + priest.getUser()
+                                .getLastName()
+                )
+
+                .confirmedDate(
+                        booking.getConfirmedDate()
+                )
+
+                .confirmedTime(
+                        booking.getConfirmedTime()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .build();
+    }
+
+
 }

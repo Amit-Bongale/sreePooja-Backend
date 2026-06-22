@@ -8,8 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -27,7 +27,7 @@ public class MyBookingResponse {
 
     private LocalDate poojaDate;
 
-    private Time poojaTime;
+    private LocalTime poojaTime;
 
     private BookingStatus bookingStatus;
 
