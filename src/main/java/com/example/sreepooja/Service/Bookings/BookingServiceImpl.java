@@ -23,7 +23,7 @@ import com.example.sreepooja.Repository.Masters.CityPincodeRepository;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.StateRepository;
 import com.example.sreepooja.Repository.Poojas.ServicePackageRepository;
-    import com.example.sreepooja.Repository.Priests.PriestRepository;
+import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Service.CustomUserDetails.CustomUserDetails;
 import com.example.sreepooja.Specification.BookingSpecification;
@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -1161,5 +1162,156 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public ConfirmBookingResponse cancelBooking(
+            Long bookingId
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(
+                                bookingId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Booking not found"
+                                        )
+                        );
+
+        if (booking.getBookingStatus()
+                == BookingStatus.CANCELLED) {
+
+            throw new BadRequestException(
+                    "Booking is already cancelled"
+            );
+        }
+
+        if (booking.getBookingStatus()
+                == BookingStatus.COMPLETED) {
+
+            throw new BadRequestException(
+                    "Completed booking cannot be cancelled"
+            );
+        }
+
+        booking.setBookingStatus(
+                BookingStatus.CANCELLED
+        );
+
+        return ConfirmBookingResponse
+                .builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ConfirmBookingResponse completeBooking(
+            Long bookingId
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(
+                                bookingId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Booking not found"
+                                        )
+                        );
+
+        if (booking.getBookingStatus()
+                == BookingStatus.COMPLETED) {
+
+            throw new BadRequestException(
+                    "Booking is already completed"
+            );
+        }
+
+        if (booking.getBookingStatus()
+                != BookingStatus.CONFIRMED) {
+
+            throw new BadRequestException(
+                    "Only confirmed bookings can be completed"
+            );
+        }
+
+        LocalDate today =
+                LocalDate.now();
+
+        LocalTime currentTime =
+                LocalTime.now();
+
+        LocalDate poojaDate =
+                booking.getConfirmedDate();
+
+        LocalTime poojaTime =
+                booking.getConfirmedTime();
+
+        boolean canComplete =
+
+                today.isAfter(
+                        poojaDate
+                )
+
+                        ||
+
+                        (
+
+                                today.isEqual(
+                                        poojaDate
+                                )
+
+                                        &&
+
+                                        currentTime.isAfter(
+                                                poojaTime
+                                        )
+                        );
+
+        if (!canComplete) {
+
+            throw new BadRequestException(
+                    "Pooja time has not passed yet"
+            );
+        }
+
+        booking.setBookingStatus(
+                BookingStatus.COMPLETED
+        );
+
+        return ConfirmBookingResponse
+                .builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .build();
+    }
 
 }

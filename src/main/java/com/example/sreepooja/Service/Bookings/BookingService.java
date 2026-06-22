@@ -44,4 +44,12 @@ public interface BookingService {
             ConfirmBookingRequest request
     );
 
+    ConfirmBookingResponse cancelBooking(
+            Long bookingId
+    );
+
+    ConfirmBookingResponse completeBooking(
+            Long bookingId
+    );
+
 }

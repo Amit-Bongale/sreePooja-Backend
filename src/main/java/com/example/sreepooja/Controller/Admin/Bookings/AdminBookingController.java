@@ -104,4 +104,38 @@ public class AdminBookingController {
                 )
         );
     }
+
+    @PutMapping(
+            "/{bookingId}/cancel"
+    )
+    public ResponseEntity<ConfirmBookingResponse>
+    cancelBooking(
+
+            @PathVariable
+            Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.cancelBooking(
+                        bookingId
+                )
+        );
+    }
+
+    @PutMapping(
+            "/{bookingId}/complete"
+    )
+    public ResponseEntity<ConfirmBookingResponse>
+    completeBooking(
+
+            @PathVariable
+            Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.completeBooking(
+                        bookingId
+                )
+        );
+    }
 }
