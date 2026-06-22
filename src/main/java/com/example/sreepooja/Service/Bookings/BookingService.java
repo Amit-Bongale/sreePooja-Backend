@@ -39,4 +39,9 @@ public interface BookingService {
             ConfirmBookingRequest request
     );
 
+    ConfirmBookingResponse reassignBooking(
+            Long bookingId,
+            ConfirmBookingRequest request
+    );
+
 }

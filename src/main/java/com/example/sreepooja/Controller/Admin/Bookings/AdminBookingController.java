@@ -81,4 +81,27 @@ public class AdminBookingController {
                 )
         );
     }
+
+    @PutMapping(
+            "/{bookingId}/reassign"
+    )
+    public ResponseEntity<ConfirmBookingResponse>
+    reassignBooking(
+
+            @PathVariable
+            Long bookingId,
+
+            @Valid
+            @RequestBody
+            ConfirmBookingRequest request
+    ) {
+
+        return ResponseEntity.ok(
+
+                bookingService.reassignBooking(
+                        bookingId,
+                        request
+                )
+        );
+    }
 }

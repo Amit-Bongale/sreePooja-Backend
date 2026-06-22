@@ -1049,5 +1049,99 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public ConfirmBookingResponse reassignBooking(
+
+            Long bookingId,
+
+            ConfirmBookingRequest request
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(
+                                bookingId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Booking not found"
+                                        )
+                        );
+
+        if (booking.getBookingStatus()
+                != BookingStatus.CONFIRMED) {
+
+            throw new BadRequestException(
+                    "Only confirmed bookings can be reassigned"
+            );
+        }
+
+        Priest priest =
+                priestRepository
+                        .findById(
+                                request.getPriestId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Priest not found"
+                                        )
+                        );
+
+        if (!priest.getActive()) {
+
+            throw new BadRequestException(
+                    "Selected priest is inactive"
+            );
+        }
+
+        booking.setPriest(
+                priest
+        );
+
+        booking.setConfirmedDate(
+                request.getConfirmedDate()
+        );
+
+        booking.setConfirmedTime(
+                request.getConfirmedTime()
+        );
+
+        return ConfirmBookingResponse
+                .builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .priestName(
+                        priest.getUser()
+                                .getFirstName()
+                                + " "
+                                + priest.getUser()
+                                .getLastName()
+                )
+
+                .confirmedDate(
+                        booking.getConfirmedDate()
+                )
+
+                .confirmedTime(
+                        booking.getConfirmedTime()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .build();
+    }
+
 
 }
