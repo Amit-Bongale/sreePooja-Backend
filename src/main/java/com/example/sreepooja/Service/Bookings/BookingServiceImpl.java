@@ -441,7 +441,13 @@ public class BookingServiceImpl implements BookingService {
                                 + balancePaymentDeadline +" for booking to be valid";
             }
 
-            String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+            String priestName =
+        booking.getPriest() != null &&
+        booking.getPriest().getUser() != null
+        ? booking.getPriest().getUser().getFirstName()
+            + " "
+            + booking.getPriest().getUser().getLastName()
+        : "Not Assigned";
 
             return MyBookingResponse.builder()
 
@@ -574,7 +580,13 @@ public class BookingServiceImpl implements BookingService {
                             + " for booking to be valid";
         }
 
-        String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+        String priestName =
+        booking.getPriest() != null &&
+        booking.getPriest().getUser() != null
+        ? booking.getPriest().getUser().getFirstName()
+            + " "
+            + booking.getPriest().getUser().getLastName()
+        : "Not Assigned";
 
         return BookingDetailsResponse.builder()
 
@@ -827,7 +839,13 @@ public class BookingServiceImpl implements BookingService {
                                         )
                         );
 
-        String priestName = booking.getPriest().getUser().getFirstName()+" "+booking.getPriest().getUser().getLastName();
+        String priestName =
+        booking.getPriest() != null &&
+        booking.getPriest().getUser() != null
+        ? booking.getPriest().getUser().getFirstName()
+            + " "
+            + booking.getPriest().getUser().getLastName()
+        : "Not Assigned";
 
         return AdminBookingDetailsResponse
                 .builder()
