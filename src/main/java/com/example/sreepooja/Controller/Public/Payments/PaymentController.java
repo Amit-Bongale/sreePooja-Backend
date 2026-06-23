@@ -1,5 +1,6 @@
 package com.example.sreepooja.Controller.Public.Payments;
 
+import com.example.sreepooja.DTO.Request.Payments.CreateOrderRequest;
 import com.example.sreepooja.DTO.Request.Payments.VerifyPaymentRequest;
 import com.example.sreepooja.DTO.Response.Payments.CreateOrderResponse;
 import com.example.sreepooja.DTO.Response.Payments.VerifyPaymentResponse;
@@ -18,11 +19,11 @@ public class PaymentController {
 
     @PostMapping("/create-order/{bookingId}")
     public ResponseEntity<CreateOrderResponse> createOrder(
-            @PathVariable Long bookingId
+            @RequestBody CreateOrderRequest request
     ) {
 
         return ResponseEntity.ok(
-                paymentService.createOrder(bookingId)
+                paymentService.createOrder(request)
         );
     }
 

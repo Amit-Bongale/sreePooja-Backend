@@ -3,6 +3,7 @@ package com.example.sreepooja.Service.Bookings;
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Entity.Masters.City;
@@ -15,6 +16,7 @@ import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
+import com.example.sreepooja.Enum.Poojas.PackageType;
 import com.example.sreepooja.Enum.Poojas.ServiceStatus;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
@@ -22,6 +24,7 @@ import com.example.sreepooja.Repository.Bookings.BookingRepository;
 import com.example.sreepooja.Repository.Masters.CityPincodeRepository;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.StateRepository;
+import com.example.sreepooja.Repository.Poojas.PoojaServicesRepository;
 import com.example.sreepooja.Repository.Poojas.ServicePackageRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
@@ -59,6 +62,8 @@ public class BookingServiceImpl implements BookingService {
     private final UsersRepository usersRepository;
 
     private final PriestRepository priestRepository;
+
+    private final PoojaServicesRepository poojaServicesRepository;
 
     @Override
     public CheckoutResponse getCheckout(Long packageId) {
@@ -471,8 +476,7 @@ public class BookingServiceImpl implements BookingService {
                     )
 
                     .packageType(
-                            booking.getSelectedPackage()
-                                    .getPackageType()
+                            booking.getPackageType()
                     )
 
                     .poojaDate(
@@ -610,8 +614,7 @@ public class BookingServiceImpl implements BookingService {
                 )
 
                 .packageType(
-                        booking.getSelectedPackage()
-                                .getPackageType()
+                        booking.getPackageType()
                 )
 
                 .bookingStatus(
@@ -788,8 +791,7 @@ public class BookingServiceImpl implements BookingService {
                     )
 
                     .packageType(
-                            booking.getSelectedPackage()
-                                    .getPackageType()
+                            booking.getPackageType()
                     )
 
                     .poojaDate(
@@ -880,8 +882,7 @@ public class BookingServiceImpl implements BookingService {
                 )
 
                 .packageType(
-                        booking.getSelectedPackage()
-                                .getPackageType()
+                        booking.getPackageType()
                 )
 
                 .preferredLanguage(
@@ -1309,6 +1310,290 @@ public class BookingServiceImpl implements BookingService {
 
                 .bookingStatus(
                         booking.getBookingStatus()
+                )
+
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public CreateBookingResponse createCustomBooking(
+            CreateCustomBookingRequest request
+    ) {
+
+        Users user =
+                usersRepository
+                        .findById(
+                                request.getUserId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "User not found"
+                                        )
+                        );
+
+        PoojaServices service =
+                poojaServicesRepository
+                        .findById(
+                                request.getServiceId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Service not found"
+                                        )
+                        );
+
+        if (service.getStatus()
+                != ServiceStatus.ACTIVE) {
+
+            throw new BadRequestException(
+                    "Pooja service is not active"
+            );
+        }
+
+        State state =
+                stateRepository
+                        .findByIdAndActiveTrue(
+                                request.getStateId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "State not found"
+                                        )
+                        );
+
+        City city =
+                cityRepository
+                        .findByIdAndActiveTrue(
+                                request.getCityId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "City not found"
+                                        )
+                        );
+
+        if (!city.getState()
+                .getId()
+                .equals(
+                        state.getId()
+                )) {
+
+            throw new BadRequestException(
+                    "City does not belong to selected state"
+            );
+        }
+
+        CityPincode pincode =
+                cityPincodeRepository
+                        .findByIdAndActiveTrue(
+                                request.getPincodeId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "Pincode not found"
+                                        )
+                        );
+
+        if (!pincode.getCity()
+                .getId()
+                .equals(
+                        city.getId()
+                )) {
+
+            throw new BadRequestException(
+                    "Pincode does not belong to selected city"
+            );
+        }
+
+        if (request.getPreferredDate() == null) {
+            throw new BadRequestException(
+                    "Preferred date is required"
+            );
+        }
+
+        if (request.getAddress() == null ||
+                request.getAddress().isBlank()) {
+
+            throw new BadRequestException(
+                    "Address is required"
+            );
+        }
+
+        BigDecimal packagePrice =
+                request.getTotalAmount();
+
+        BigDecimal taxAmount =
+                BigDecimal.ZERO;
+
+        BigDecimal totalAmount =
+                request.getTotalAmount();
+
+        BigDecimal advancePercentage =
+                request.getAdvancePercentage();
+
+        BigDecimal advanceAmount =
+                totalAmount
+                        .multiply(
+                                advancePercentage
+                                        .divide(
+                                                BigDecimal.valueOf(100),
+                                                4,
+                                                RoundingMode.HALF_UP
+                                        )
+                        )
+                        .setScale(
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+
+        BigDecimal balanceAmount =
+                totalAmount.subtract(
+                        advanceAmount
+                );
+
+        Booking booking =
+                Booking.builder()
+
+                        .bookingNumber(
+                                "TEMP"
+                        )
+
+                        .user(
+                                user
+                        )
+
+                        .service(
+                                service
+                        )
+
+                        .selectedPackage(
+                                null
+                        )
+
+                        .packageType(
+                                PackageType.CUSTOM
+                        )
+
+                        .customDescription(
+                                request.getCustomDescription()
+                        )
+
+                        .preferredDate(
+                                request.getPreferredDate()
+                        )
+
+                        .preferredTimeSlot(
+                                request.getPreferredTimeSlot()
+                        )
+
+                        .preferredLanguage(
+                                request.getPreferredLanguage()
+                        )
+
+                        .preferredCommunity(
+                                request.getPreferredCommunity()
+                        )
+
+                        .address(
+                                request.getAddress()
+                        )
+
+                        .state(
+                                state
+                        )
+
+                        .city(
+                                city
+                        )
+
+                        .pincode(
+                                pincode
+                        )
+
+                        .specialInstructions(
+                                request.getSpecialInstructions()
+                        )
+
+                        .packagePrice(
+                                packagePrice
+                        )
+
+                        .taxAmount(
+                                taxAmount
+                        )
+
+                        .totalAmount(
+                                totalAmount
+                        )
+
+                        .advancePercentage(
+                                advancePercentage
+                        )
+
+                        .advanceAmount(
+                                advanceAmount
+                        )
+
+                        .balanceAmount(
+                                balanceAmount
+                        )
+
+                        .bookingStatus(
+                                BookingStatus.PENDING_PAYMENT
+                        )
+
+                        .paymentStatus(
+                                PaymentStatus.PENDING
+                        )
+
+                        .paymentOption(
+                                null
+                        )
+
+                        .build();
+
+        Booking savedBooking =
+                bookingRepository.save(
+                        booking
+                );
+
+        savedBooking.setBookingNumber(
+                "SP" +
+                        savedBooking.getId()
+        );
+
+        savedBooking =
+                bookingRepository.save(
+                        savedBooking
+                );
+
+        return CreateBookingResponse
+                .builder()
+
+                .bookingId(
+                        savedBooking.getId()
+                )
+
+                .bookingNumber(
+                        savedBooking.getBookingNumber()
+                )
+
+                .bookingStatus(
+                        savedBooking.getBookingStatus()
+                )
+
+                .paymentStatus(
+                        savedBooking.getPaymentStatus()
+                )
+
+                .amountToPay(
+                        BigDecimal.ZERO
                 )
 
                 .build();

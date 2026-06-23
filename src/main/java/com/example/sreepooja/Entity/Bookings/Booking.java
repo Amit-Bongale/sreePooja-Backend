@@ -11,6 +11,7 @@ import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
+import com.example.sreepooja.Enum.Poojas.PackageType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -53,7 +54,7 @@ public class Booking {
     private PoojaServices service;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "package_id", nullable = false)
+    @JoinColumn(name = "package_id")
     private ServicePackage selectedPackage;
 
     @Column(nullable = false)
@@ -95,6 +96,13 @@ public class Booking {
     @Column(length = 1000)
     private String specialInstructions;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PackageType packageType;
+
+    @Column(length = 2000)
+    private String customDescription;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal packagePrice;
 
@@ -122,7 +130,6 @@ public class Booking {
     private PaymentStatus paymentStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PaymentOption paymentOption;
 
     @CreationTimestamp

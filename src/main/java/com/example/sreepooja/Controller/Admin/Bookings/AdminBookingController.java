@@ -2,9 +2,11 @@ package com.example.sreepooja.Controller.Admin.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
 import com.example.sreepooja.DTO.Response.Bookings.ConfirmBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -136,6 +138,24 @@ public class AdminBookingController {
                 bookingService.completeBooking(
                         bookingId
                 )
+        );
+    }
+
+    @PostMapping("/custom")
+    public ResponseEntity<CreateBookingResponse>
+    createCustomBooking(
+
+            @RequestBody
+            @Valid
+            CreateCustomBookingRequest request
+    ) {
+
+        return ResponseEntity.ok(
+
+                bookingService
+                        .createCustomBooking(
+                                request
+                        )
         );
     }
 }

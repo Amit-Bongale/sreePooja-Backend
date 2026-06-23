@@ -1,5 +1,6 @@
 package com.example.sreepooja.Service.Payments;
 
+import com.example.sreepooja.DTO.Request.Payments.CreateOrderRequest;
 import com.example.sreepooja.DTO.Request.Payments.VerifyPaymentRequest;
 import com.example.sreepooja.DTO.Response.Payments.CreateOrderResponse;
 import com.example.sreepooja.DTO.Response.Payments.VerifyPaymentResponse;
@@ -46,8 +47,8 @@ public class PaymentsServiceImpl implements PaymentsService{
     @Override
     @Transactional
     public CreateOrderResponse createOrder(
-            Long bookingId
-    ) {
+            CreateOrderRequest request
+    ){
 
         CustomUserDetails userDetails =
                 (CustomUserDetails)
@@ -66,7 +67,7 @@ public class PaymentsServiceImpl implements PaymentsService{
                         );
 
         Booking booking =
-                bookingRepository.findById(bookingId)
+                bookingRepository.findById(request.getBookingId())
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Booking not found"
@@ -81,6 +82,30 @@ public class PaymentsServiceImpl implements PaymentsService{
             );
         }
 
+        PaymentOption paymentOption =
+                booking.getPaymentOption();
+
+        if (paymentOption == null) {
+
+            paymentOption =
+                    request.getPaymentOption();
+
+            if (paymentOption == null) {
+
+                throw new BadRequestException(
+                        "Payment option is required"
+                );
+            }
+
+            booking.setPaymentOption(
+                    paymentOption
+            );
+
+            bookingRepository.save(
+                    booking
+            );
+        }
+
         if (booking.getBookingStatus()
                 != BookingStatus.PENDING_PAYMENT) {
 
@@ -89,10 +114,18 @@ public class PaymentsServiceImpl implements PaymentsService{
             );
         }
 
+        if (booking.getPaymentStatus()
+                == PaymentStatus.PAID) {
+
+            throw new BadRequestException(
+                    "Booking is already paid"
+            );
+        }
+
         BigDecimal payableAmount;
 
-        if (booking.getPaymentOption()
-                == PaymentOption.ADVANCE) {
+        if (paymentOption
+                == PaymentOption.ADVANCE){
 
             payableAmount =
                     booking.getAdvanceAmount();
