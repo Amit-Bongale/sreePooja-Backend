@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -29,6 +30,8 @@ public class AdminBookingResponse {
     private PackageType packageType;
 
     private LocalDate poojaDate;
+
+    private LocalTime poojaTime;
 
     private BookingStatus bookingStatus;
 

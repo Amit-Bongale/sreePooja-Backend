@@ -800,6 +800,8 @@ public class BookingServiceImpl implements BookingService {
                             effectiveDate
                     )
 
+                    .poojaTime(booking.getConfirmedTime())
+
                     .bookingStatus(
                             booking.getBookingStatus()
                     )
