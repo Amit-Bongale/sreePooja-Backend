@@ -386,6 +386,7 @@ public class BookingServiceImpl implements BookingService {
                 .amountToPay(
                         amountToPay
                 )
+                .paymentOption(savedBooking.getPaymentOption())
                 .build();
     }
 

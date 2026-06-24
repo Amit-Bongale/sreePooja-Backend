@@ -1,6 +1,7 @@
 package com.example.sreepooja.DTO.Response.Bookings;
 
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
+import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,4 +25,6 @@ public class CreateBookingResponse {
     private String razorpayOrderId;
 
     private BigDecimal amountToPay;
+
+    private PaymentOption paymentOption;
 }
