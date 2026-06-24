@@ -348,6 +348,7 @@ public class BookingServiceImpl implements BookingService {
 
                         .paymentStatus(PaymentStatus.PENDING)
                         .paymentOption(request.getPaymentOption())
+                        .packageType(request.getPackageType())
                         .build();
         Booking savedBooking =
                 bookingRepository.save(booking);

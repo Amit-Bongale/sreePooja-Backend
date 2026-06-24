@@ -17,7 +17,7 @@ public class PaymentController {
 
     private final PaymentsService paymentService;
 
-    @PostMapping("/create-order/{bookingId}")
+    @PostMapping("/create-order")
     public ResponseEntity<CreateOrderResponse> createOrder(
             @RequestBody CreateOrderRequest request
     ) {
