@@ -5,6 +5,7 @@ import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.*;
+import com.example.sreepooja.DTO.Users.UserResponse;
 import org.springframework.data.domain.Page;
 
 public interface BookingService {
@@ -56,5 +57,7 @@ public interface BookingService {
     CreateBookingResponse createCustomBooking(
             CreateCustomBookingRequest request
     );
+
+    UserResponse getUserByMobileNo(String mobileNo);
 
 }

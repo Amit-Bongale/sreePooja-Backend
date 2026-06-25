@@ -1,5 +1,6 @@
 package com.example.sreepooja.Entity;
 
+import com.example.sreepooja.Enum.UserStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -24,10 +25,21 @@ public class Users {
 
     private LocalDate dob;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
+
     @OneToMany(mappedBy = "user" , fetch = FetchType.EAGER,  cascade = CascadeType.ALL,  orphanRemoval = true)
     @JsonIgnore
     private Set<UserRole> roles = new HashSet<>();
 
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;

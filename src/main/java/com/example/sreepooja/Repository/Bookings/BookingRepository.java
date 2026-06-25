@@ -1,6 +1,7 @@
 package com.example.sreepooja.Repository.Bookings;
 
 import com.example.sreepooja.Entity.Bookings.Booking;
+import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,8 +15,9 @@ import java.util.List;
 public interface BookingRepository
         extends JpaRepository<Booking, Long>, JpaSpecificationExecutor<Booking> {
 
-    Page<Booking> findByUserId(
+    Page<Booking> findByUserIdAndBookingStatus(
             Long userId,
+            BookingStatus bookingStatus,
             Pageable pageable
     );
 

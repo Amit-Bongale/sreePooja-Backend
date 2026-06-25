@@ -3,7 +3,6 @@ package com.example.sreepooja.Service;
 import com.example.sreepooja.DTO.Users.AddUserDTO;
 import com.example.sreepooja.DTO.Users.UpdateUserDTO;
 import com.example.sreepooja.DTO.Users.UserWithRolesDTO;
-
 import com.example.sreepooja.Entity.UserRole;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.UserRoles;
@@ -267,6 +266,4 @@ public class UsersService {
                     return dto;
                 });
     }
-
-
 }

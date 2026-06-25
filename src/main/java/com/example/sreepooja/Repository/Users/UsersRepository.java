@@ -6,6 +6,7 @@ import com.example.sreepooja.Enum.UserRoles;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UsersRepository extends JpaRepository<Users, Long> {
+public interface UsersRepository extends JpaRepository<Users, Long>,
+        JpaSpecificationExecutor<Users> {
     Optional<Users> findByMobileNo(String mobile);
 
     @Query("""
@@ -55,6 +57,18 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     boolean existsDuplicateNumbers(
             @Param("mobile") String mobile,
             @Param("whatsapp") String whatsapp
+    );
+
+    @Query("""
+    SELECT DISTINCT u
+    FROM Users u
+    JOIN u.roles r
+    WHERE u.mobileNo = :mobileNo
+      AND r.role = :role
+""")
+    Optional<Users> findUserByMobileNoAndRole(
+            @Param("mobileNo") String mobileNo,
+            @Param("role") UserRoles role
     );
 
 }

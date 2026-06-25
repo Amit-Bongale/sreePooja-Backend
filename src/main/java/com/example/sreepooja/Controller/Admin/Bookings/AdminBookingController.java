@@ -7,6 +7,7 @@ import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
 import com.example.sreepooja.DTO.Response.Bookings.ConfirmBookingResponse;
 import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
+import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -156,6 +157,16 @@ public class AdminBookingController {
                         .createCustomBooking(
                                 request
                         )
+        );
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<UserResponse> getUserByMobileNo(
+            @RequestParam String mobileNo
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.getUserByMobileNo(mobileNo)
         );
     }
 }

@@ -9,10 +9,10 @@ public enum UserRoles {
 
     //staff
     STAFF,
-    Operations_Manager,
-    Custom_Service_Executive,
-    Accounts_Manager,
-    Content_Manager,
+    OPERATIONS_MANAGER,
+    ACCOUNTS_MANAGER,
+    CONTENT_MANAGER,
+    CUSTOMER_SERVICE_EXECUTIVE,
 
     //admin
     ADMIN,

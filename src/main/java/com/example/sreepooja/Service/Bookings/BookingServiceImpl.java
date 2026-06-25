@@ -5,6 +5,7 @@ import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.*;
+import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.CityPincode;
@@ -18,6 +19,7 @@ import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Poojas.PackageType;
 import com.example.sreepooja.Enum.Poojas.ServiceStatus;
+import com.example.sreepooja.Enum.UserRoles;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Bookings.BookingRepository;
@@ -413,8 +415,9 @@ public class BookingServiceImpl implements BookingService {
 
         Page<Booking> bookings =
                 bookingRepository
-                        .findByUserId(
+                        .findByUserIdAndBookingStatus(
                                 userDetails.getUserId(),
+                                BookingStatus.PAYMENT_RECEIVED,
                                 pageable
                         );
 
@@ -1600,6 +1603,31 @@ public class BookingServiceImpl implements BookingService {
                         BigDecimal.ZERO
                 )
 
+                .build();
+    }
+
+    @Override
+    public UserResponse getUserByMobileNo(String mobileNo) {
+
+        if (mobileNo == null || mobileNo.length() != 10) {
+            throw new BadRequestException("Enter a valid 10-digit mobile number.");
+        }
+
+        Users user = usersRepository
+                .findUserByMobileNoAndRole(
+                        mobileNo,
+                        UserRoles.USER
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found.")
+                );
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .fullName(
+                        user.getFirstName() + " " + user.getLastName()
+                )
+                .mobileNo(user.getMobileNo())
                 .build();
     }
 
