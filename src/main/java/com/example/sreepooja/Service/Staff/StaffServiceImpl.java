@@ -1,6 +1,7 @@
 package com.example.sreepooja.Service.Staff;
 
 import com.example.sreepooja.DTO.Request.Staff.CreateStaffRequest;
+import com.example.sreepooja.DTO.Request.Staff.UpdateStaffRequest;
 import com.example.sreepooja.DTO.Response.Staff.StaffResponse;
 import com.example.sreepooja.Entity.UserRole;
 import com.example.sreepooja.Entity.Users;
@@ -151,5 +152,98 @@ public class StaffServiceImpl implements StaffService {
         }
 
         return mapToResponse(user);
+    }
+
+    private boolean isStaff(Users user) {
+
+        return user.getRoles()
+                .stream()
+                .map(UserRole::getRole)
+                .anyMatch(role ->
+                        role != UserRoles.USER &&
+                                role != UserRoles.PRIEST
+                );
+    }
+
+    @Override
+    @Transactional
+    public StaffResponse updateStaff(
+            Long id,
+           UpdateStaffRequest request
+    ) {
+
+        Users user = usersRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Staff not found."));
+
+        if (!isStaff(user)) {
+            throw new ResourceNotFoundException("Staff not found.");
+        }
+
+        // First Name
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+
+        // Last Name
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+
+        // Mobile
+        if (request.getMobileNo() != null &&
+                !request.getMobileNo().equals(user.getMobileNo())) {
+
+            usersRepository.findByMobileNo(request.getMobileNo())
+                    .ifPresent(existing -> {
+                        throw new BadRequestException("Mobile number already exists.");
+                    });
+
+            user.setMobileNo(request.getMobileNo());
+        }
+
+        // Email
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+
+        // DOB
+        if (request.getDob() != null) {
+            user.setDob(request.getDob());
+        }
+
+        // Status
+        if (request.getStatus() != null) {
+            user.setStatus(request.getStatus());
+        }
+
+        // Roles
+        if (request.getRoles() != null) {
+
+            if (request.getRoles().contains(UserRoles.USER)) {
+                throw new BadRequestException("USER role cannot be assigned.");
+            }
+
+            if (request.getRoles().contains(UserRoles.SUPER_ADMIN)) {
+                throw new BadRequestException("SUPER_ADMIN role cannot be assigned.");
+            }
+
+            user.getRoles().clear();
+
+            usersRepository.saveAndFlush(user);
+
+            for (UserRoles role : request.getRoles()) {
+
+                UserRole userRole = new UserRole();
+                userRole.setUser(user);
+                userRole.setRole(role);
+
+                user.getRoles().add(userRole);
+            }
+        }
+
+            Users updatedUser = usersRepository.save(user);
+
+        return mapToResponse(updatedUser);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.sreepooja.Controller.Admin.Staff;
 
 import com.example.sreepooja.DTO.Request.Staff.CreateStaffRequest;
+import com.example.sreepooja.DTO.Request.Staff.UpdateStaffRequest;
 import com.example.sreepooja.DTO.Response.Staff.StaffResponse;
 import com.example.sreepooja.Enum.UserRoles;
 import com.example.sreepooja.Enum.UserStatus;
@@ -82,6 +83,18 @@ public class StaffController {
 
         return ResponseEntity.ok(
                 staffService.getStaffById(id)
+        );
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    public ResponseEntity<StaffResponse> updateStaff(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateStaffRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                staffService.updateStaff(id, request)
         );
     }
 }

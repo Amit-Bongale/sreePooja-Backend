@@ -1,6 +1,7 @@
 package com.example.sreepooja.Service.Staff;
 
 import com.example.sreepooja.DTO.Request.Staff.CreateStaffRequest;
+import com.example.sreepooja.DTO.Request.Staff.UpdateStaffRequest;
 import com.example.sreepooja.DTO.Response.Staff.StaffResponse;
 import com.example.sreepooja.Enum.UserRoles;
 import com.example.sreepooja.Enum.UserStatus;
@@ -19,5 +20,10 @@ public interface StaffService {
     );
 
     StaffResponse getStaffById(Long id);
+
+    StaffResponse updateStaff(
+            Long id,
+            UpdateStaffRequest request
+    );
 
 }
