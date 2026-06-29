@@ -414,12 +414,12 @@ public class BookingServiceImpl implements BookingService {
                 );
 
         Page<Booking> bookings =
-                bookingRepository
-                        .findByUserIdAndBookingStatus(
-                                userDetails.getUserId(),
-                                BookingStatus.PAYMENT_RECEIVED,
-                                pageable
-                        );
+                bookingRepository.findMyBookings(
+                        userDetails.getUserId(),
+                        BookingStatus.PENDING_PAYMENT,
+                        PackageType.CUSTOM,
+                        pageable
+                );
 
         return bookings.map(booking -> {
 
