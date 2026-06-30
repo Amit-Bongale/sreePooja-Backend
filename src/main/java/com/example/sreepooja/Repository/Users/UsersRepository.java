@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Long>,
@@ -69,6 +70,28 @@ public interface UsersRepository extends JpaRepository<Users, Long>,
     Optional<Users> findUserByMobileNoAndRole(
             @Param("mobileNo") String mobileNo,
             @Param("role") UserRoles role
+    );
+
+    @Query("""
+SELECT COUNT(DISTINCT u.id)
+FROM Users u
+JOIN u.roles r
+WHERE r.role = :role
+""")
+    long countUsersByRole(
+            @Param("role")
+            UserRoles role
+    );
+
+    @Query("""
+SELECT COUNT(DISTINCT u.id)
+FROM Users u
+JOIN u.roles r
+WHERE r.role IN :roles
+""")
+    long countStaff(
+            @Param("roles")
+            Set<UserRoles> roles
     );
 
 }

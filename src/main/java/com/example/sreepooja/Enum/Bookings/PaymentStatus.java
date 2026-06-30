@@ -1,6 +1,6 @@
 package com.example.sreepooja.Enum.Bookings;
 
-public enum PaymentStatus {
+public enum  PaymentStatus {
 
     PENDING,
 

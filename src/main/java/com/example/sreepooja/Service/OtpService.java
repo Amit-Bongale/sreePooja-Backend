@@ -1,8 +1,13 @@
 package com.example.sreepooja.Service;
 
 import com.example.sreepooja.Entity.OtpVerification;
+import com.example.sreepooja.Entity.Users;
+import com.example.sreepooja.Enum.UserRoles;
+import com.example.sreepooja.Enum.UserStatus;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.Repository.OtpRepository;
+import com.example.sreepooja.Repository.Users.UsersRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,12 +15,15 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+@RequiredArgsConstructor
 @Service
 public class OtpService {
 
-    // set otp attemps = 5 and resend timer to 60 sec
+    // set otp attempts = 5 and resend timer to 60 sec
     private static final int MAX_ATTEMPTS = 5;
     private static final int RESEND_SECONDS = 10;
+
+    private final UsersRepository usersRepository;
 
     @Autowired
     private OtpRepository otpRepository;
@@ -45,6 +53,7 @@ public class OtpService {
     }
 
     public boolean verifyOtp(String mobileNo, String otpCode) {
+
         OtpVerification otp = otpRepository
                 .findByMobileNo(mobileNo)
                 .orElseThrow(() -> new BadRequestException("OTP not sent"));
@@ -58,7 +67,30 @@ public class OtpService {
         if (otp.getExpiresAt().isBefore(LocalDateTime.now()))
             return false;
 
-        return otp.getOtp().equals(otpCode);
+        if (!otp.getOtp().equals(otpCode))
+            return false;
+
+        Users user = usersRepository.findByMobileNo(mobileNo)
+                .orElseThrow(() -> new BadRequestException("User not found."));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+
+            boolean isCustomer = user.getRoles()
+                    .stream()
+                    .anyMatch(role -> role.getRole() == UserRoles.USER);
+
+            if (isCustomer) {
+                throw new BadRequestException(
+                        "Your account is inactive. Please contact Customer Service."
+                );
+            }
+
+            throw new BadRequestException(
+                    "Your account is inactive. Please contact your Administrator."
+            );
+        }
+
+        return true;
     }
 }
 

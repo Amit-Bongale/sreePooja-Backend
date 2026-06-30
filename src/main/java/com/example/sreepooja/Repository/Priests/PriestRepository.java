@@ -61,4 +61,6 @@ public interface PriestRepository
             String whatsappNumber,
             Long id
     );
+
+    long count();
 }
