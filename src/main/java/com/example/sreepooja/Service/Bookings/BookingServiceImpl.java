@@ -1696,6 +1696,236 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public Page<AdminCustomRequestResponse> getCustomRequests(
+            int page,
+            int size
+    ) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by("createdAt").descending()
+                );
+
+        Page<Booking> bookings =
+                bookingRepository
+                        .findByBookingStatusOrderByCreatedAtDesc(
+                                BookingStatus.CUSTOM_REQUEST,
+                                pageable
+                        );
+
+        return bookings.map(booking -> {
+
+            LocalDate effectiveDate =
+                    booking.getConfirmedDate() != null
+                            ? booking.getConfirmedDate()
+                            : booking.getPreferredDate();
+
+            return AdminCustomRequestResponse.builder()
+
+                    .bookingId(
+                            booking.getId()
+                    )
+
+                    .bookingNumber(
+                            booking.getBookingNumber()
+                    )
+
+                    .customerFirstName(
+                            booking.getUser().getFirstName()
+                    )
+
+                    .customerLastName(booking.getUser().getLastName())
+
+                    .mobileNumber(
+                            booking.getUser().getMobileNo()
+                    )
+
+                    .serviceName(
+                            booking.getService().getServiceName()
+                    )
+
+                    .preferredDate(
+                            booking.getPreferredDate()
+                    )
+
+                    .bookingStatus(
+                            booking.getBookingStatus()
+                    )
+
+                    .address(
+                            booking.getAddress()
+                    )
+
+                    .city(
+                            booking.getCity().getCityName()
+                    )
+
+                    .packageType(booking.getPackageType())
+
+                    .paymentStatus(booking.getPaymentStatus())
+
+                    .preferredTimeSlot(booking.getPreferredTimeSlot())
+
+                    .state(booking.getState().getStateName())
+
+                    .poojaDate(effectiveDate)
+
+                    .poojaTime(booking.getConfirmedTime())
+
+                    .build();
+
+        });
+    }
+
+    @Override
+    public AdminBookingDetailsResponse getCustomRequestDetails(
+            Long bookingId
+    ) {
+
+        Booking booking =
+                bookingRepository
+                        .findById(bookingId)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Booking not found"
+                                )
+                        );
+
+        if (booking.getBookingStatus()
+                != BookingStatus.CUSTOM_REQUEST) {
+
+            throw new BadRequestException(
+                    "Booking is not a custom request."
+            );
+        }
+
+        String priestName =
+                booking.getPriest() != null &&
+                        booking.getPriest().getUser() != null
+                        ? booking.getPriest().getUser().getFirstName()
+                        + " "
+                        + booking.getPriest().getUser().getLastName()
+                        : "Not Assigned";
+
+        return AdminBookingDetailsResponse.builder()
+
+                .bookingId(
+                        booking.getId()
+                )
+
+                .bookingNumber(
+                        booking.getBookingNumber()
+                )
+
+                .customerFirstName(
+                        booking.getUser()
+                                .getFirstName()
+                )
+
+                .customerLastName(
+                        booking.getUser()
+                                .getLastName()
+                )
+
+                .mobileNumber(
+                        booking.getUser()
+                                .getMobileNo()
+                )
+
+                .serviceName(
+                        booking.getService()
+                                .getServiceName()
+                )
+
+                .packageType(
+                        booking.getPackageType()
+                )
+
+                .preferredLanguage(
+                        booking.getPreferredLanguage()
+                )
+
+                .preferredCommunity(
+                        booking.getPreferredCommunity()
+                )
+
+                .address(
+                        booking.getAddress()
+                )
+
+                .state(
+                        booking.getState()
+                                .getStateName()
+                )
+
+                .city(
+                        booking.getCity()
+                                .getCityName()
+                )
+
+                .pincode(
+                        booking.getPincode()
+                                .getPincode()
+                )
+
+                .preferredDate(
+                        booking.getPreferredDate()
+                )
+
+                .preferredTimeSlot(
+                        booking.getPreferredTimeSlot()
+                )
+
+                .confirmedDate(
+                        booking.getConfirmedDate()
+                )
+
+                .confirmedTime(
+                        booking.getConfirmedTime()
+                )
+
+                .priestName(priestName)
+
+                .specialInstructions(
+                        booking.getSpecialInstructions()
+                )
+
+                .bookingStatus(
+                        booking.getBookingStatus()
+                )
+
+                .paymentStatus(
+                        booking.getPaymentStatus()
+                )
+
+                .paymentOption(
+                        booking.getPaymentOption()
+                )
+
+                .totalAmount(
+                        booking.getTotalAmount()
+                )
+
+                .advanceAmount(
+                        booking.getPaymentOption() == PaymentOption.ADVANCE
+                                ? booking.getAdvanceAmount()
+                                : null
+                )
+
+                .balanceAmount(
+                        booking.getBalanceAmount()
+                )
+
+                .bookedAt(
+                        booking.getCreatedAt()
+                )
+
+                .build();
+    }
+
+    @Override
     public UserResponse getUserByMobileNo(String mobileNo) {
 
         if (mobileNo == null || mobileNo.length() != 10) {

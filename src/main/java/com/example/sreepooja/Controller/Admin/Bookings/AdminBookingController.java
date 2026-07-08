@@ -3,9 +3,7 @@ package com.example.sreepooja.Controller.Admin.Bookings;
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
 import com.example.sreepooja.DTO.Request.Bookings.RespondCustomBookingRequest;
-import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
-import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
-import com.example.sreepooja.DTO.Response.Bookings.ConfirmBookingResponse;
+import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import jakarta.validation.Valid;
@@ -151,6 +149,40 @@ public class AdminBookingController {
                 bookingService.respondCustomBooking(
                         bookingId,
                         request
+                )
+        );
+    }
+
+    @GetMapping("/custom-requests")
+    public ResponseEntity<Page<AdminCustomRequestResponse>>
+    getCustomRequests(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        return ResponseEntity.ok(
+
+                bookingService.getCustomRequests(
+                        page,
+                        size
+                )
+
+        );
+    }
+
+    @GetMapping("/custom-requests/{bookingId}")
+    public ResponseEntity<AdminBookingDetailsResponse>
+    getCustomRequestDetails(
+            @PathVariable Long bookingId
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.getCustomRequestDetails(
+                        bookingId
                 )
         );
     }

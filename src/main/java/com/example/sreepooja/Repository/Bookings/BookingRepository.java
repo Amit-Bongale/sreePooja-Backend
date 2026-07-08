@@ -43,5 +43,8 @@ public interface BookingRepository
 
     long countByBookingStatusNotIn(Collection<BookingStatus> statuses);
 
-
+    Page<Booking> findByBookingStatusOrderByCreatedAtDesc(
+            BookingStatus bookingStatus,
+            Pageable pageable
+    );
 }

@@ -60,6 +60,15 @@ public interface BookingService {
             RespondCustomBookingRequest request
     );
 
+    Page<AdminCustomRequestResponse> getCustomRequests(
+            int page,
+            int size
+    );
+
+    AdminBookingDetailsResponse getCustomRequestDetails(
+            Long bookingId
+    );
+
     UserResponse getUserByMobileNo(String mobileNo);
 
 }
