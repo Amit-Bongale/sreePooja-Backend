@@ -1,9 +1,6 @@
 package com.example.sreepooja.Service.Bookings;
 
-import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
-import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
-import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
-import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.*;
 import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.DTO.Users.UserResponse;
 import org.springframework.data.domain.Page;
@@ -54,8 +51,13 @@ public interface BookingService {
             Long bookingId
     );
 
-    CreateBookingResponse createCustomBooking(
+    String createCustomBooking(
             CreateCustomBookingRequest request
+    );
+
+    String respondCustomBooking(
+            Long bookingId,
+            RespondCustomBookingRequest request
     );
 
     UserResponse getUserByMobileNo(String mobileNo);

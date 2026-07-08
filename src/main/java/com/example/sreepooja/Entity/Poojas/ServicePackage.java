@@ -50,4 +50,8 @@ public class ServicePackage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
     private PoojaServices poojaService;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean customPackage = false;
 }

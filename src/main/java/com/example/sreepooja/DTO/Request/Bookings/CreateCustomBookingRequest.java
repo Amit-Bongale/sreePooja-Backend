@@ -1,24 +1,22 @@
 package com.example.sreepooja.DTO.Request.Bookings;
 
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
-import jakarta.validation.constraints.*;
+import com.example.sreepooja.Enum.Poojas.PackageType;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+
 @Data
 public class CreateCustomBookingRequest {
 
     @NotNull
-    private Long userId;
+    private Long packageId;
 
     @NotNull
-    private Long serviceId;
-
-    @NotBlank
-    private String customDescription;
-
-    @NotNull
+    @Future
     private LocalDate preferredDate;
 
     @NotNull
@@ -43,11 +41,5 @@ public class CreateCustomBookingRequest {
     private String specialInstructions;
 
     @NotNull
-    @Positive
-    private BigDecimal totalAmount;
-
-    @NotNull
-    @DecimalMin("0.00")
-    @DecimalMax("100.00")
-    private BigDecimal advancePercentage;
+    private PackageType packageType;
 }

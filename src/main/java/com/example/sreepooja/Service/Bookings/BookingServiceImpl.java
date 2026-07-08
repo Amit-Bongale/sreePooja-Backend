@@ -1,9 +1,6 @@
 package com.example.sreepooja.Service.Bookings;
 
-import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
-import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
-import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
-import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.*;
 import com.example.sreepooja.DTO.Response.Bookings.*;
 import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Entity.Bookings.Booking;
@@ -350,7 +347,7 @@ public class BookingServiceImpl implements BookingService {
 
                         .paymentStatus(PaymentStatus.PENDING)
                         .paymentOption(request.getPaymentOption())
-                        .packageType(request.getPackageType())
+                        .packageType(servicePackage.getPackageType())
                         .build();
         Booking savedBooking =
                 bookingRepository.save(booking);
@@ -524,6 +521,18 @@ public class BookingServiceImpl implements BookingService {
 
                     .address(booking.getAddress())
 
+                    .confirmedDate(
+                            booking.getConfirmedDate()
+                    )
+
+                    .confirmedTime(
+                            booking.getConfirmedTime()
+                    )
+
+                    .customDescription(
+                            booking.getCustomDescription()
+                    )
+
                     .build();
         });
     }
@@ -682,6 +691,10 @@ public class BookingServiceImpl implements BookingService {
 
                 .specialInstructions(
                         booking.getSpecialInstructions()
+                )
+
+                .customDescription(
+                        booking.getCustomDescription()
                 )
 
                 .packagePrice(
@@ -1003,6 +1016,20 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
+        if (booking.getPaymentStatus() != PaymentStatus.PARTIALLY_PAID
+                && booking.getPaymentStatus() != PaymentStatus.PAID) {
+
+            throw new BadRequestException(
+                    "Advance or full payment must be completed before assigning a priest."
+            );
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CONFIRMED) {
+            throw new BadRequestException(
+                    "Booking is already confirmed."
+            );
+        }
+
         Priest priest =
                 priestRepository
                         .findById(
@@ -1026,13 +1053,13 @@ public class BookingServiceImpl implements BookingService {
                 priest
         );
 
-        booking.setConfirmedDate(
-                request.getConfirmedDate()
-        );
+        if (booking.getConfirmedDate() == null) {
+            booking.setConfirmedDate(request.getConfirmedDate());
+        }
 
-        booking.setConfirmedTime(
-                request.getConfirmedTime()
-        );
+        if (booking.getConfirmedTime() == null) {
+            booking.setConfirmedTime(request.getConfirmedTime());
+        }
 
         booking.setBookingStatus(
                 BookingStatus.CONFIRMED
@@ -1322,39 +1349,43 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    @Override
     @Transactional
-    public CreateBookingResponse createCustomBooking(
+    @Override
+    public String createCustomBooking(
             CreateCustomBookingRequest request
     ) {
 
-        Users user =
-                usersRepository
-                        .findById(
-                                request.getUserId()
-                        )
+        ServicePackage servicePackage =
+                servicePackageRepository
+                        .findById(request.getPackageId())
                         .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "User not found"
-                                        )
+                                () -> new ResourceNotFoundException(
+                                        "Package not found"
+                                )
                         );
+
+        if (!Boolean.TRUE.equals(servicePackage.getCustomPackage())) {
+            throw new BadRequestException(
+                    "Selected package is not a custom package."
+            );
+        }
+
+        if (servicePackage.getStatus() != ServiceStatus.ACTIVE) {
+            throw new BadRequestException(
+                    "Package is not active"
+            );
+        }
 
         PoojaServices service =
-                poojaServicesRepository
-                        .findById(
-                                request.getServiceId()
-                        )
-                        .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "Service not found"
-                                        )
-                        );
+                servicePackage.getPoojaService();
 
-        if (service.getStatus()
-                != ServiceStatus.ACTIVE) {
+        if (service == null) {
+            throw new BadRequestException(
+                    "Package is not mapped to any service"
+            );
+        }
 
+        if (service.getStatus() != ServiceStatus.ACTIVE) {
             throw new BadRequestException(
                     "Pooja service is not active"
             );
@@ -1366,10 +1397,9 @@ public class BookingServiceImpl implements BookingService {
                                 request.getStateId()
                         )
                         .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "State not found"
-                                        )
+                                () -> new ResourceNotFoundException(
+                                        "State not found"
+                                )
                         );
 
         City city =
@@ -1378,18 +1408,12 @@ public class BookingServiceImpl implements BookingService {
                                 request.getCityId()
                         )
                         .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "City not found"
-                                        )
+                                () -> new ResourceNotFoundException(
+                                        "City not found"
+                                )
                         );
 
-        if (!city.getState()
-                .getId()
-                .equals(
-                        state.getId()
-                )) {
-
+        if (!city.getState().getId().equals(state.getId())) {
             throw new BadRequestException(
                     "City does not belong to selected state"
             );
@@ -1401,18 +1425,12 @@ public class BookingServiceImpl implements BookingService {
                                 request.getPincodeId()
                         )
                         .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "Pincode not found"
-                                        )
+                                () -> new ResourceNotFoundException(
+                                        "Pincode not found"
+                                )
                         );
 
-        if (!pincode.getCity()
-                .getId()
-                .equals(
-                        city.getId()
-                )) {
-
+        if (!pincode.getCity().getId().equals(city.getId())) {
             throw new BadRequestException(
                     "Pincode does not belong to selected city"
             );
@@ -1420,7 +1438,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (request.getPreferredDate() == null) {
             throw new BadRequestException(
-                    "Preferred date is required"
+                    "Preferred Date is required"
             );
         }
 
@@ -1432,64 +1450,32 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
-        BigDecimal packagePrice =
-                request.getTotalAmount();
+        CustomUserDetails userDetails =
+                (CustomUserDetails)
+                        SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getPrincipal();
 
-        BigDecimal taxAmount =
-                BigDecimal.ZERO;
-
-        BigDecimal totalAmount =
-                request.getTotalAmount();
-
-        BigDecimal advancePercentage =
-                request.getAdvancePercentage();
-
-        BigDecimal advanceAmount =
-                totalAmount
-                        .multiply(
-                                advancePercentage
-                                        .divide(
-                                                BigDecimal.valueOf(100),
-                                                4,
-                                                RoundingMode.HALF_UP
-                                        )
-                        )
-                        .setScale(
-                                2,
-                                RoundingMode.HALF_UP
+        Users user =
+                usersRepository
+                        .findById(userDetails.getUserId())
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "User not found"
+                                )
                         );
-
-        BigDecimal balanceAmount =
-                totalAmount.subtract(
-                        advanceAmount
-                );
 
         Booking booking =
                 Booking.builder()
 
-                        .bookingNumber(
-                                "TEMP"
-                        )
+                        .bookingNumber("TEMP")
 
-                        .user(
-                                user
-                        )
+                        .user(user)
 
-                        .service(
-                                service
-                        )
+                        .service(service)
 
-                        .selectedPackage(
-                                null
-                        )
-
-                        .packageType(
-                                PackageType.CUSTOM
-                        )
-
-                        .customDescription(
-                                request.getCustomDescription()
-                        )
+                        .selectedPackage(servicePackage)
 
                         .preferredDate(
                                 request.getPreferredDate()
@@ -1511,99 +1497,202 @@ public class BookingServiceImpl implements BookingService {
                                 request.getAddress()
                         )
 
-                        .state(
-                                state
-                        )
+                        .state(state)
 
-                        .city(
-                                city
-                        )
+                        .city(city)
 
-                        .pincode(
-                                pincode
-                        )
+                        .pincode(pincode)
 
                         .specialInstructions(
                                 request.getSpecialInstructions()
                         )
 
+                        .packageType(
+                                servicePackage.getPackageType()
+                        )
+
                         .packagePrice(
-                                packagePrice
+                                BigDecimal.ZERO
                         )
 
                         .taxAmount(
-                                taxAmount
+                                BigDecimal.ZERO
                         )
 
                         .totalAmount(
-                                totalAmount
+                                BigDecimal.ZERO
                         )
 
                         .advancePercentage(
-                                advancePercentage
+                                BigDecimal.ZERO
                         )
 
                         .advanceAmount(
-                                advanceAmount
+                                BigDecimal.ZERO
                         )
 
                         .balanceAmount(
-                                balanceAmount
+                                BigDecimal.ZERO
                         )
 
                         .bookingStatus(
-                                BookingStatus.PENDING_PAYMENT
+                                BookingStatus.CUSTOM_REQUEST
                         )
 
                         .paymentStatus(
                                 PaymentStatus.PENDING
                         )
 
-                        .paymentOption(
-                                null
-                        )
+                        .paymentOption(null)
+
+                        .confirmedDate(null)
+
+                        .confirmedTime(null)
+
+                        .priest(null)
+
+                        .customDescription(null)
 
                         .build();
 
         Booking savedBooking =
-                bookingRepository.save(
-                        booking
-                );
+                bookingRepository.save(booking);
 
         savedBooking.setBookingNumber(
-                "SP" +
-                        savedBooking.getId()
+                "SP" + savedBooking.getId()
         );
 
-        savedBooking =
-                bookingRepository.save(
-                        savedBooking
-                );
+        bookingRepository.save(savedBooking);
 
-        return CreateBookingResponse
-                .builder()
+        return "Custom pooja request submitted successfully.";
+    }
 
-                .bookingId(
-                        savedBooking.getId()
-                )
+    @Override
+    @Transactional
+    public String respondCustomBooking(
+            Long bookingId,
+            RespondCustomBookingRequest request
+    ) {
 
-                .bookingNumber(
-                        savedBooking.getBookingNumber()
-                )
+        Booking booking =
+                bookingRepository
+                        .findById(bookingId)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Booking not found"
+                                )
+                        );
 
-                .bookingStatus(
-                        savedBooking.getBookingStatus()
-                )
+        if (booking.getBookingStatus() != BookingStatus.CUSTOM_REQUEST) {
+            throw new BadRequestException(
+                    "Only custom requests can be responded to."
+            );
+        }
 
-                .paymentStatus(
-                        savedBooking.getPaymentStatus()
-                )
+        if (request.getConfirmedDate() == null) {
+            throw new BadRequestException(
+                    "Confirmed date is required."
+            );
+        }
 
-                .amountToPay(
-                        BigDecimal.ZERO
-                )
+        if (request.getConfirmedTime() == null) {
+            throw new BadRequestException(
+                    "Confirmed time is required."
+            );
+        }
 
-                .build();
+        if (request.getCustomDescription() == null ||
+                request.getCustomDescription().isBlank()) {
+
+            throw new BadRequestException(
+                    "Custom description is required."
+            );
+        }
+
+        if (request.getPackagePrice() == null ||
+                request.getPackagePrice().compareTo(BigDecimal.ZERO) < 0) {
+
+            throw new BadRequestException(
+                    "Package price must be greater than or equal to zero."
+            );
+        }
+
+        if (request.getAdvancePercentage() == null ||
+                request.getAdvancePercentage().compareTo(BigDecimal.ZERO) < 0 ||
+                request.getAdvancePercentage().compareTo(BigDecimal.valueOf(100)) > 0) {
+
+            throw new BadRequestException(
+                    "Advance percentage must be between 0 and 100."
+            );
+        }
+
+        BigDecimal packagePrice =
+                request.getPackagePrice();
+
+        BigDecimal taxAmount =
+                BigDecimal.ZERO;
+
+        BigDecimal totalAmount =
+                packagePrice.add(taxAmount);
+
+        BigDecimal advancePercentage =
+                request.getAdvancePercentage();
+
+        BigDecimal advanceAmount =
+                totalAmount
+                        .multiply(advancePercentage)
+                        .divide(
+                                BigDecimal.valueOf(100),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+
+        BigDecimal balanceAmount =
+                totalAmount.subtract(advanceAmount);
+
+        booking.setConfirmedDate(
+                request.getConfirmedDate()
+        );
+
+        booking.setConfirmedTime(
+                request.getConfirmedTime()
+        );
+
+        booking.setCustomDescription(
+                request.getCustomDescription()
+        );
+
+        booking.setPackagePrice(
+                packagePrice
+        );
+
+        booking.setTaxAmount(
+                taxAmount
+        );
+
+        booking.setTotalAmount(
+                totalAmount
+        );
+
+        booking.setAdvancePercentage(
+                advancePercentage
+        );
+
+        booking.setAdvanceAmount(
+                advanceAmount
+        );
+
+        booking.setBalanceAmount(
+                balanceAmount
+        );
+
+        booking.setBookingStatus(
+                BookingStatus.CUSTOM_RESPONSE
+        );
+
+        bookingRepository.save(booking);
+
+        return "Custom pooja response sent successfully.";
     }
 
     @Override

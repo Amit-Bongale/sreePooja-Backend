@@ -42,4 +42,6 @@ public interface BookingRepository
     long countByBookingStatusIn(Collection<BookingStatus> bookingStatuses);
 
     long countByBookingStatusNotIn(Collection<BookingStatus> statuses);
+
+
 }

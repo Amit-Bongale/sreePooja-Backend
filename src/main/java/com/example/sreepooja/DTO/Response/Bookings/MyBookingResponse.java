@@ -46,4 +46,10 @@ public class MyBookingResponse {
     private String priestName;
 
     private String address;
+
+    private LocalDate confirmedDate;
+
+    private LocalTime confirmedTime;
+
+    private String customDescription;
 }

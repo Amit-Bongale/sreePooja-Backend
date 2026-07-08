@@ -174,6 +174,8 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
 
             buildPackages(request, poojaService);
 
+            buildCustomPackage(request, poojaService);
+
             buildLanguages(request, poojaService);
 
             buildCommunities(request, poojaService);
@@ -401,6 +403,30 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
         poojaService.getPackages().addAll(packageList);
     }
 
+    private void buildCustomPackage(
+            CreatePoojaServiceRequest request,
+            PoojaServices poojaService
+    ) {
+
+        if (!Boolean.TRUE.equals(request.getEnableCustomPackage())) {
+            return;
+        }
+
+        ServicePackage customPackage =
+                ServicePackage.builder()
+                        .packageType(PackageType.CUSTOM)
+                        .shortDescription("Custom Pooja")
+                        .includedItems(null)
+                        .price(BigDecimal.ZERO)
+                        .advancePercentage(BigDecimal.ZERO)
+                        .status(ServiceStatus.ACTIVE)
+                        .customPackage(true)
+                        .poojaService(poojaService)
+                        .build();
+
+        poojaService.getPackages().add(customPackage);
+    }
+
     @Override
     public List<CategoryResponse> getAllCategoriesForAdmin() {
 
@@ -591,6 +617,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                                 pkg.getAdvancePercentage()
                                         )
                                         .status(pkg.getStatus())
+                                        .customPackage(pkg.getCustomPackage())
                                         .build()
                         )
                         .toList();
@@ -902,6 +929,7 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
                                                 pkg.getAdvancePercentage()
                                         )
                                         .status(pkg.getStatus())
+                                        .customPackage(pkg.getCustomPackage())
                                         .build()
                         )
                         .toList();
@@ -1181,6 +1209,11 @@ public class PoojaServicesServiceImpl implements PoojaServicesService {
             poojaServicesRepository.flush();
 
             buildPackages(
+                    request,
+                    poojaService
+            );
+
+            buildCustomPackage(
                     request,
                     poojaService
             );

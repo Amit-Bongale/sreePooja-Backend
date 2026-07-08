@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CreatePoojaServiceRequest {
+public class    CreatePoojaServiceRequest {
 
     @NotBlank(message = "Service name is required")
     private String serviceName;
@@ -48,4 +48,6 @@ public class CreatePoojaServiceRequest {
 
     @Valid
     private List<CreateServicePackageRequest> packages;
+
+    private Boolean enableCustomPackage;
 }

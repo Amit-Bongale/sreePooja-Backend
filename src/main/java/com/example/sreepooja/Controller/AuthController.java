@@ -60,7 +60,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error" , "User Already Exist"));
         }
 
-        boolean otpValid = otpService.verifyOtp(
+        boolean otpValid = otpService.verifySignupOtp(
                 request.getMobileNo(),
                 request.getOtp()
         );
@@ -141,7 +141,7 @@ public class AuthController {
     public ResponseEntity<?> verifyOtp(@RequestParam String mobileNo,
                                        @RequestParam String otp) {
 
-        boolean isValid = otpService.verifyOtp(mobileNo, otp);
+        boolean isValid = otpService.verifyLoginOtp(mobileNo, otp);
 
         if (!isValid) {
             return ResponseEntity
@@ -152,7 +152,7 @@ public class AuthController {
         // Load User
         Users user = userRepository.findByMobileNo(mobileNo)
                 .orElseThrow(() ->
-                        new RuntimeException("User not registered"));
+                        new BadRequestException("User not registered"));
 
         // Load Spring Security UserDetails
         CustomUserDetails userDetails =

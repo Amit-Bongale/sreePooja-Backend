@@ -57,6 +57,8 @@ public class BookingDetailsResponse {
 
     private String specialInstructions;
 
+    private String customDescription;
+
     private BigDecimal packagePrice;
 
     private BigDecimal taxAmount;

@@ -1,6 +1,7 @@
 package com.example.sreepooja.Controller.Public.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.CreateBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.BookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.CheckoutResponse;
 import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
@@ -73,6 +74,16 @@ public class BookingController {
                 bookingService.getBookingDetails(
                         bookingId
                 )
+        );
+    }
+
+    @PostMapping("/custom")
+    public ResponseEntity<String> createCustomBooking(
+            @Valid @RequestBody CreateCustomBookingRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                bookingService.createCustomBooking(request)
         );
     }
 }

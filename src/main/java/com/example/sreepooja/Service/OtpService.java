@@ -52,7 +52,7 @@ public class OtpService {
         System.out.println("OTP for " + mobileNo + " is: " + code);
     }
 
-    public boolean verifyOtp(String mobileNo, String otpCode) {
+    public boolean verifyLoginOtp(String mobileNo, String otpCode) {
 
         OtpVerification otp = otpRepository
                 .findByMobileNo(mobileNo)
@@ -89,6 +89,27 @@ public class OtpService {
                     "Your account is inactive. Please contact your Administrator."
             );
         }
+
+        return true;
+    }
+
+    public boolean verifySignupOtp(String mobileNo, String otpCode) {
+
+        OtpVerification otp = otpRepository
+                .findByMobileNo(mobileNo)
+                .orElseThrow(() -> new BadRequestException("OTP not sent"));
+
+        if (otp.getAttempts() >= MAX_ATTEMPTS)
+            throw new BadRequestException("OTP attempts exceeded");
+
+        otp.setAttempts(otp.getAttempts() + 1);
+        otpRepository.save(otp);
+
+        if (otp.getExpiresAt().isBefore(LocalDateTime.now()))
+            return false;
+
+        if (!otp.getOtp().equals(otpCode))
+            return false;
 
         return true;
     }

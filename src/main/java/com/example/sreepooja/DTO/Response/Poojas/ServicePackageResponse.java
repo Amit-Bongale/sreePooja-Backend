@@ -24,4 +24,6 @@ public class ServicePackageResponse {
     private BigDecimal advancePercentage;
 
     private ServiceStatus status;
+
+    private Boolean customPackage;
 }

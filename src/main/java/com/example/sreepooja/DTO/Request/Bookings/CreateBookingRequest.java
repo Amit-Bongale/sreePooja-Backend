@@ -2,7 +2,6 @@ package com.example.sreepooja.DTO.Request.Bookings;
 
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
-import com.example.sreepooja.Enum.Poojas.PackageType;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -43,7 +42,4 @@ public class CreateBookingRequest {
 
     @NotNull
     private PaymentOption paymentOption;
-
-    @NotNull
-    private PackageType packageType;
 }

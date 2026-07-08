@@ -2,11 +2,10 @@ package com.example.sreepooja.Controller.Admin.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.AdminBookingFilterRequest;
 import com.example.sreepooja.DTO.Request.Bookings.ConfirmBookingRequest;
-import com.example.sreepooja.DTO.Request.Bookings.CreateCustomBookingRequest;
+import com.example.sreepooja.DTO.Request.Bookings.RespondCustomBookingRequest;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingDetailsResponse;
 import com.example.sreepooja.DTO.Response.Bookings.AdminBookingResponse;
 import com.example.sreepooja.DTO.Response.Bookings.ConfirmBookingResponse;
-import com.example.sreepooja.DTO.Response.Bookings.CreateBookingResponse;
 import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Service.Bookings.BookingService;
 import jakarta.validation.Valid;
@@ -142,21 +141,17 @@ public class AdminBookingController {
         );
     }
 
-    @PostMapping("/custom")
-    public ResponseEntity<CreateBookingResponse>
-    createCustomBooking(
-
-            @RequestBody
-            @Valid
-            CreateCustomBookingRequest request
+    @PutMapping("/custom/{bookingId}/respond")
+    public ResponseEntity<String> respondCustomBooking(
+            @PathVariable Long bookingId,
+            @Valid @RequestBody RespondCustomBookingRequest request
     ) {
 
         return ResponseEntity.ok(
-
-                bookingService
-                        .createCustomBooking(
-                                request
-                        )
+                bookingService.respondCustomBooking(
+                        bookingId,
+                        request
+                )
         );
     }
 

@@ -12,5 +12,9 @@ public enum BookingStatus {
 
     COMPLETED,
 
-    CANCELLED
+    CANCELLED,
+
+    CUSTOM_REQUEST,
+
+    CUSTOM_RESPONSE
 }
