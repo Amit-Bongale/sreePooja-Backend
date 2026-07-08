@@ -1936,6 +1936,10 @@ public class BookingServiceImpl implements BookingService {
                         booking.getCreatedAt()
                 )
 
+                .advancePercentage(booking.getAdvancePercentage())
+
+                .packagePrice(booking.getPackagePrice())
+
                 .build();
     }
 

@@ -5,6 +5,7 @@ import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Bookings.TimeSlot;
 import com.example.sreepooja.Enum.Poojas.PackageType;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Builder;
 import lombok.Data;
 
@@ -63,7 +64,10 @@ public class AdminBookingDetailsResponse {
 
     private PaymentOption paymentOption;
 
-//    private BigDecimal packagePrice;
+    private BigDecimal packagePrice;
+
+    @DecimalMin("0.00")
+    private BigDecimal advancePercentage;
 
 //    private BigDecimal taxAmount;
 
