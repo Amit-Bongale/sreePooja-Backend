@@ -55,6 +55,8 @@ public class AdminBookingDetailsResponse {
 
     private String specialInstructions;
 
+    private String customDescription;
+
     private BookingStatus bookingStatus;
 
     private PaymentStatus paymentStatus;

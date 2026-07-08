@@ -187,6 +187,27 @@ public class AdminBookingController {
         );
     }
 
+    @GetMapping("/custom-responses")
+    public ResponseEntity<Page<AdminCustomRequestResponse>>
+    getPendingCustomResponses(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        return ResponseEntity.ok(
+
+                bookingService.getPendingCustomResponses(
+                        page,
+                        size
+                )
+
+        );
+    }
+
     @GetMapping("/users/search")
     public ResponseEntity<UserResponse> getUserByMobileNo(
             @RequestParam String mobileNo

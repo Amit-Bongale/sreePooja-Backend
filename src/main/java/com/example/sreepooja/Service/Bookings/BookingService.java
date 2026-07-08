@@ -69,6 +69,11 @@ public interface BookingService {
             Long bookingId
     );
 
+    Page<AdminCustomRequestResponse> getPendingCustomResponses(
+            int page,
+            int size
+    );
+
     UserResponse getUserByMobileNo(String mobileNo);
 
 }

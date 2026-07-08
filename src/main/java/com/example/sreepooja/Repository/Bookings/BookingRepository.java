@@ -47,4 +47,10 @@ public interface BookingRepository
             BookingStatus bookingStatus,
             Pageable pageable
     );
+
+    Page<Booking> findByBookingStatusAndPaymentStatusOrderByCreatedAtDesc(
+            BookingStatus bookingStatus,
+            PaymentStatus paymentStatus,
+            Pageable pageable
+    );
 }

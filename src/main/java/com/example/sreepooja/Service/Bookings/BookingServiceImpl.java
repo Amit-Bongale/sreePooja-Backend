@@ -954,6 +954,8 @@ public class BookingServiceImpl implements BookingService {
                         booking.getSpecialInstructions()
                 )
 
+                .customDescription(booking.getCustomDescription())
+
                 .bookingStatus(
                         booking.getBookingStatus()
                 )
@@ -1583,9 +1585,19 @@ public class BookingServiceImpl implements BookingService {
                                 )
                         );
 
-        if (booking.getBookingStatus() != BookingStatus.CUSTOM_REQUEST) {
+        if (booking.getBookingStatus() != BookingStatus.CUSTOM_REQUEST
+                && booking.getBookingStatus() != BookingStatus.CUSTOM_RESPONSE) {
+
             throw new BadRequestException(
-                    "Only custom requests can be responded to."
+                    "Only custom package can be updated."
+            );
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CUSTOM_RESPONSE
+                && booking.getPaymentStatus() != PaymentStatus.PENDING) {
+
+            throw new BadRequestException(
+                    "Custom package details cannot be edited after payment has been initiated."
             );
         }
 
@@ -1793,11 +1805,11 @@ public class BookingServiceImpl implements BookingService {
                                 )
                         );
 
-        if (booking.getBookingStatus()
-                != BookingStatus.CUSTOM_REQUEST) {
+        if (booking.getBookingStatus() != BookingStatus.CUSTOM_REQUEST
+                && booking.getBookingStatus() != BookingStatus.CUSTOM_RESPONSE) {
 
             throw new BadRequestException(
-                    "Booking is not a custom request."
+                    "Booking is not a custom booking."
             );
         }
 
@@ -1892,6 +1904,8 @@ public class BookingServiceImpl implements BookingService {
                         booking.getSpecialInstructions()
                 )
 
+                .customDescription(booking.getCustomDescription())
+
                 .bookingStatus(
                         booking.getBookingStatus()
                 )
@@ -1923,6 +1937,86 @@ public class BookingServiceImpl implements BookingService {
                 )
 
                 .build();
+    }
+
+    @Override
+    public Page<AdminCustomRequestResponse> getPendingCustomResponses(
+            int page,
+            int size
+    ) {
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by("createdAt").descending()
+                );
+
+        Page<Booking> bookings =
+                bookingRepository
+                        .findByBookingStatusAndPaymentStatusOrderByCreatedAtDesc(
+                                BookingStatus.CUSTOM_RESPONSE,
+                                PaymentStatus.PENDING,
+                                pageable
+                        );
+
+        return bookings.map(booking ->
+
+                AdminCustomRequestResponse.builder()
+
+                        .bookingId(
+                                booking.getId()
+                        )
+
+                        .bookingNumber(
+                                booking.getBookingNumber()
+                        )
+
+                        .customerFirstName(
+                                booking.getUser().getFirstName()
+                        )
+
+                        .customerLastName(booking.getUser().getLastName())
+
+                        .mobileNumber(
+                                booking.getUser().getMobileNo()
+                        )
+
+                        .serviceName(
+                                booking.getService().getServiceName()
+                        )
+
+                        .preferredDate(
+                                booking.getPreferredDate()
+                        )
+
+                        .bookingStatus(
+                                booking.getBookingStatus()
+                        )
+
+                        .address(
+                                booking.getAddress()
+                        )
+
+                        .city(
+                                booking.getCity().getCityName()
+                        )
+
+                        .state(booking.getState().getStateName())
+
+                        .packageType(booking.getPackageType())
+
+                        .paymentStatus(booking.getPaymentStatus())
+
+                        .preferredTimeSlot(booking.getPreferredTimeSlot())
+
+                        .poojaDate(booking.getConfirmedDate())
+
+                        .poojaTime(booking.getConfirmedTime())
+
+                        .build()
+
+        );
     }
 
     @Override
