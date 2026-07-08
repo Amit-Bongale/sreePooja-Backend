@@ -153,7 +153,7 @@ public class AdminBookingController {
         );
     }
 
-    @GetMapping("/custom-requests")
+    @GetMapping("/custom/pending")
     public ResponseEntity<Page<AdminCustomRequestResponse>>
     getCustomRequests(
 
