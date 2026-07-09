@@ -1,6 +1,7 @@
 package com.example.sreepooja.Service.Staff;
 
 import com.example.sreepooja.DTO.Request.Staff.CreateStaffRequest;
+import com.example.sreepooja.DTO.Request.Staff.UpdateStaffProfileRequest;
 import com.example.sreepooja.DTO.Request.Staff.UpdateStaffRequest;
 import com.example.sreepooja.DTO.Response.Staff.StaffResponse;
 import com.example.sreepooja.Entity.UserRole;
@@ -11,12 +12,15 @@ import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Users.UserRoleRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
+import com.example.sreepooja.Service.CustomUserDetails.CustomUserDetails;
 import com.example.sreepooja.Specification.StaffSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ public class StaffServiceImpl implements StaffService {
 
     private final UsersRepository usersRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -36,6 +41,15 @@ public class StaffServiceImpl implements StaffService {
         // Check mobile number
         if (usersRepository.findByMobileNo(request.getMobileNo()).isPresent()) {
             throw new BadRequestException("Mobile number already exists.");
+        }
+
+        // Check emailId
+        if (usersRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new BadRequestException("Email ID already exists.");
+        }
+
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new BadRequestException("Password field cannot be empty");
         }
 
         // USER role should not be assigned
@@ -53,6 +67,11 @@ public class StaffServiceImpl implements StaffService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setMobileNo(request.getMobileNo());
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
         user.setEmail(request.getEmail());
         user.setDob(request.getDob());
         user.setStatus(UserStatus.ACTIVE);
@@ -212,6 +231,17 @@ public class StaffServiceImpl implements StaffService {
             user.setDob(request.getDob());
         }
 
+        // Password
+        if (request.getPassword() != null &&
+                !request.getPassword().isBlank()) {
+
+            user.setPassword(
+                    passwordEncoder.encode(
+                            request.getPassword()
+                    )
+            );
+        }
+
         // Status
         if (request.getStatus() != null) {
             user.setStatus(request.getStatus());
@@ -243,6 +273,66 @@ public class StaffServiceImpl implements StaffService {
         }
 
             Users updatedUser = usersRepository.save(user);
+
+        return mapToResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public StaffResponse updateMyProfile(
+            UpdateStaffProfileRequest request
+    ) {
+
+        CustomUserDetails userDetails =
+                (CustomUserDetails)
+                        SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getPrincipal();
+
+        Users user =
+                usersRepository
+                        .findById(userDetails.getUserId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Staff not found."
+                                )
+                        );
+
+        if (!isStaff(user)) {
+            throw new ResourceNotFoundException(
+                    "Staff not found."
+            );
+        }
+
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getDob() != null) {
+            user.setDob(request.getDob());
+        }
+
+        if (request.getPassword() != null
+                && !request.getPassword().isBlank()) {
+
+            user.setPassword(
+                    passwordEncoder.encode(
+                            request.getPassword()
+                    )
+            );
+        }
+
+        Users updatedUser =
+                usersRepository.save(user);
 
         return mapToResponse(updatedUser);
     }

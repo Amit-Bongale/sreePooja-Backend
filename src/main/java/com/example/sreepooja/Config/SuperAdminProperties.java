@@ -10,6 +10,15 @@ public class SuperAdminProperties {
     private String firstName;
     private String lastName;
     private String mobileNo;
+    private String password;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getFirstName() {
         return firstName;

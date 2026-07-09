@@ -34,4 +34,6 @@ public class UpdateStaffRequest {
     private UserStatus status;
 
     private Set<UserRoles> roles;
+
+    private String password;
 }

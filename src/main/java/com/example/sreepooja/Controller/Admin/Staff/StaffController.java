@@ -1,6 +1,7 @@
 package com.example.sreepooja.Controller.Admin.Staff;
 
 import com.example.sreepooja.DTO.Request.Staff.CreateStaffRequest;
+import com.example.sreepooja.DTO.Request.Staff.UpdateStaffProfileRequest;
 import com.example.sreepooja.DTO.Request.Staff.UpdateStaffRequest;
 import com.example.sreepooja.DTO.Response.Staff.StaffResponse;
 import com.example.sreepooja.Enum.UserRoles;
@@ -95,6 +96,19 @@ public class StaffController {
 
         return ResponseEntity.ok(
                 staffService.updateStaff(id, request)
+        );
+    }
+
+    @PutMapping("/profile")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','OPERATIONS_MANAGER','CONTENT_MANAGER')")
+    public ResponseEntity<StaffResponse> updateMyProfile(
+            @Valid
+            @RequestBody
+            UpdateStaffProfileRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                staffService.updateMyProfile(request)
         );
     }
 }

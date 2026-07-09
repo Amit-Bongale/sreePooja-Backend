@@ -37,6 +37,9 @@ public class CreatePriestRequest {
     private String email;
 
     @NotBlank
+    private String password;
+
+    @NotBlank
     private String addressLine1;
 
     private String addressLine2;

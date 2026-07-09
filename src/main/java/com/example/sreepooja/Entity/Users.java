@@ -25,6 +25,9 @@ public class Users {
 
     private LocalDate dob;
 
+    @Column(length = 255)
+    private String password;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
@@ -96,5 +99,13 @@ public class Users {
 
     public void setDob(LocalDate dob) {
         this.dob = dob;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

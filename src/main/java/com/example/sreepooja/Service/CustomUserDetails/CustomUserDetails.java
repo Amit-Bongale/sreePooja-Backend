@@ -16,6 +16,7 @@ public class CustomUserDetails implements UserDetails {
     private final String firstName;
     private final Set<String> roles;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final String password;
 
 
     public CustomUserDetails(Users user) {
@@ -30,6 +31,7 @@ public class CustomUserDetails implements UserDetails {
                 .stream()
                 .map(r -> r.getRole().name())
                 .collect(Collectors.toSet());
+        this.password = user.getPassword();
     }
 
     public Long getUserId() {
@@ -47,7 +49,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null; // OTP based – no password
+        return password;
     }
 
     @Override

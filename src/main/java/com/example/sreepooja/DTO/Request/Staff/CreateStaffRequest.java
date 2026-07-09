@@ -1,15 +1,8 @@
 package com.example.sreepooja.DTO.Request.Staff;
 
 import com.example.sreepooja.Enum.UserRoles;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -40,4 +33,7 @@ public class CreateStaffRequest {
 
     @NotEmpty(message = "At least one role must be assigned")
     private Set<UserRoles> roles;
+
+    @NotBlank
+    private String password;
 }

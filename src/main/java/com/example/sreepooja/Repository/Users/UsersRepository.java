@@ -20,6 +20,8 @@ public interface UsersRepository extends JpaRepository<Users, Long>,
         JpaSpecificationExecutor<Users> {
     Optional<Users> findByMobileNo(String mobile);
 
+    Optional<Users> findByEmail(String email);
+
     @Query("""
         SELECT DISTINCT u FROM Users u
         LEFT JOIN FETCH u.roles

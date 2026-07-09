@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class PriestServiceImpl implements PriestService {
     private final LanguageRepository languageRepository;
     private final CityRepository cityRepository;
     private final CommunityRepository communityRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -89,6 +91,15 @@ public class PriestServiceImpl implements PriestService {
             );
         }
 
+        // Check emailId
+        if (usersRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new BadRequestException("Email ID already exists.");
+        }
+
+//        if (request.getPassword() == null || request.getPassword().isBlank()) {
+//            throw new BadRequestException("Password field cannot be empty");
+//        }
+
         Community community =
                 communityRepository
                         .findById(
@@ -117,6 +128,12 @@ public class PriestServiceImpl implements PriestService {
         user.setMobileNo(
                 request.getMobileNumber()
         );
+
+//        user.setPassword(
+//                passwordEncoder.encode(
+//                        request.getPassword()
+//                )
+//        );
 
         user.setEmail(
                 request.getEmail()

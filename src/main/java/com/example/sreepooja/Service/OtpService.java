@@ -52,34 +52,68 @@ public class OtpService {
         System.out.println("OTP for " + mobileNo + " is: " + code);
     }
 
-    public boolean verifyLoginOtp(String mobileNo, String otpCode) {
+    private boolean verifyOtp(
+            String mobileNo,
+            String otpCode
+    ) {
 
         OtpVerification otp = otpRepository
                 .findByMobileNo(mobileNo)
                 .orElseThrow(() -> new BadRequestException("OTP not sent"));
 
-        if (otp.getAttempts() >= MAX_ATTEMPTS)
+        if (otp.getAttempts() >= MAX_ATTEMPTS) {
             throw new BadRequestException("OTP attempts exceeded");
+        }
 
         otp.setAttempts(otp.getAttempts() + 1);
         otpRepository.save(otp);
 
-        if (otp.getExpiresAt().isBefore(LocalDateTime.now()))
+        if (otp.getExpiresAt().isBefore(LocalDateTime.now())) {
             return false;
+        }
 
-        if (!otp.getOtp().equals(otpCode))
+        if (!otp.getOtp().equals(otpCode)) {
             return false;
+        }
 
-        Users user = usersRepository.findByMobileNo(mobileNo)
-                .orElseThrow(() -> new BadRequestException("User not found."));
+        return true;
+    }
+
+    public boolean verifyLoginOtp(
+            String mobileNo,
+            String otpCode
+    ) {
+
+        boolean valid =
+                verifyOtp(
+                        mobileNo,
+                        otpCode
+                );
+
+        if (!valid) {
+            return false;
+        }
+
+        Users user =
+                usersRepository
+                        .findByMobileNo(mobileNo)
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "User not found."
+                                )
+                        );
 
         if (user.getStatus() != UserStatus.ACTIVE) {
 
-            boolean isCustomer = user.getRoles()
-                    .stream()
-                    .anyMatch(role -> role.getRole() == UserRoles.USER);
+            boolean isCustomer =
+                    user.getRoles()
+                            .stream()
+                            .anyMatch(role ->
+                                    role.getRole() == UserRoles.USER
+                            );
 
             if (isCustomer) {
+
                 throw new BadRequestException(
                         "Your account is inactive. Please contact Customer Service."
                 );
@@ -93,25 +127,25 @@ public class OtpService {
         return true;
     }
 
-    public boolean verifySignupOtp(String mobileNo, String otpCode) {
+    public boolean verifySignupOtp(
+            String mobileNo,
+            String otpCode
+    ) {
+        return verifyOtp(
+                mobileNo,
+                otpCode
+        );
+    }
 
-        OtpVerification otp = otpRepository
-                .findByMobileNo(mobileNo)
-                .orElseThrow(() -> new BadRequestException("OTP not sent"));
+    public boolean verifyForgotPasswordOtp(
+            String mobileNo,
+            String otpCode
+    ) {
 
-        if (otp.getAttempts() >= MAX_ATTEMPTS)
-            throw new BadRequestException("OTP attempts exceeded");
-
-        otp.setAttempts(otp.getAttempts() + 1);
-        otpRepository.save(otp);
-
-        if (otp.getExpiresAt().isBefore(LocalDateTime.now()))
-            return false;
-
-        if (!otp.getOtp().equals(otpCode))
-            return false;
-
-        return true;
+        return verifyOtp(
+                mobileNo,
+                otpCode
+        );
     }
 }
 
