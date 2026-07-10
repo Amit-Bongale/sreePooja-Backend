@@ -4,21 +4,20 @@ import com.example.sreepooja.DTO.Request.Priests.CreatePriestRequest;
 import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
 import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
-import com.example.sreepooja.Entity.Masters.Community;
+import com.example.sreepooja.Entity.Masters.*;
 import com.example.sreepooja.Entity.Priests.Priest;
+import com.example.sreepooja.Entity.Priests.PriestLanguageMapping;
 import com.example.sreepooja.Entity.UserRole;
 import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.UserRoles;
+import com.example.sreepooja.Enum.UserStatus;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
-import com.example.sreepooja.Repository.Masters.CityRepository;
-import com.example.sreepooja.Repository.Masters.CommunityRepository;
-import com.example.sreepooja.Repository.Masters.LanguageRepository;
+import com.example.sreepooja.Repository.Masters.*;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Repository.Users.UserRoleRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Specification.PriestSpecification;
-import com.example.sreepooja.Utility.StringCommaUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,8 +37,10 @@ public class PriestServiceImpl implements PriestService {
     private final PriestRepository priestRepository;
     private final UsersRepository usersRepository;
     private final UserRoleRepository userRoleRepository;
-    private final LanguageRepository languageRepository;
+    private final StateRepository stateRepository;
     private final CityRepository cityRepository;
+    private final CityPincodeRepository cityPincodeRepository;
+    private final LanguageRepository languageRepository;
     private final CommunityRepository communityRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -92,8 +93,12 @@ public class PriestServiceImpl implements PriestService {
         }
 
         // Check emailId
-        if (usersRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new BadRequestException("Email ID already exists.");
+        if (request.getEmail() != null &&
+                usersRepository.findByEmail(request.getEmail()).isPresent()) {
+
+            throw new BadRequestException(
+                    "Email ID already exists."
+            );
         }
 
 //        if (request.getPassword() == null || request.getPassword().isBlank()) {
@@ -111,6 +116,53 @@ public class PriestServiceImpl implements PriestService {
                                                 "Community not found"
                                         )
                         );
+
+        State state =
+                stateRepository
+                        .findByIdAndActiveTrue(
+                                request.getStateId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "State not found"
+                                )
+                        );
+
+        City city =
+                cityRepository
+                        .findByIdAndActiveTrue(
+                                request.getCityId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "City not found"
+                                )
+                        );
+
+        if (!city.getState().getId().equals(state.getId())) {
+
+            throw new BadRequestException(
+                    "City does not belong to selected state"
+            );
+        }
+
+        CityPincode pincode =
+                cityPincodeRepository
+                        .findByIdAndActiveTrue(
+                                request.getPincodeId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Pincode not found"
+                                )
+                        );
+
+        if (!pincode.getCity().getId().equals(city.getId())) {
+
+            throw new BadRequestException(
+                    "Pincode does not belong to selected city"
+            );
+        }
 
         /*
          * Create User
@@ -141,6 +193,10 @@ public class PriestServiceImpl implements PriestService {
 
         user.setDob(
                 request.getDob()
+        );
+
+        user.setStatus(
+                UserStatus.ACTIVE
         );
 
         usersRepository.save(
@@ -200,24 +256,11 @@ public class PriestServiceImpl implements PriestService {
                                 request.getAddressLine2()
                         )
 
-                        .city(
-                                request.getCity()
-                        )
+                        .state(state)
 
-                        .state(
-                                request.getState()
-                        )
+                        .city(city)
 
-                        .pincode(
-                                request.getPincode()
-                        )
-
-                        .languagesSpoken(
-                                StringCommaUtil
-                                        .normalizeCommaSeparatedValues(
-                                                request.getLanguagesSpoken()
-                                        )
-                        )
+                        .pincode(pincode)
 
                         .community(
                                 community
@@ -238,6 +281,27 @@ public class PriestServiceImpl implements PriestService {
                         )
 
                         .build();
+
+        for (Long languageId : request.getLanguageIds()) {
+
+            Language language =
+                    languageRepository
+                            .findByIdAndActiveTrue(languageId)
+                            .orElseThrow(() ->
+                                    new ResourceNotFoundException(
+                                            "Language not found"
+                                    )
+                            );
+
+            PriestLanguageMapping mapping =
+                    PriestLanguageMapping
+                            .builder()
+                            .priest(priest)
+                            .language(language)
+                            .build();
+
+            priest.getLanguages().add(mapping);
+        }
 
         priestRepository.save(
                 priest
@@ -268,18 +332,30 @@ public class PriestServiceImpl implements PriestService {
 
                 .city(
                         priest.getCity()
+                                .getCityName()
                 )
 
                 .state(
                         priest.getState()
+                                .getStateName()
                 )
 
-                .languagesSpoken(
-                        priest.getLanguagesSpoken()
+                .languages(
+                        priest.getLanguages()
+                                .stream()
+                                .map(mapping ->
+                                        mapping.getLanguage()
+                                                .getLanguageName()
+                                )
+                                .toList()
                 )
 
                 .communityId(
                         community.getId()
+                )
+
+                .communityName(
+                        community.getCommunityName()
                 )
 
                 .experience(
@@ -311,42 +387,6 @@ public class PriestServiceImpl implements PriestService {
                                 .descending()
                 );
 
-        String languageName = null;
-
-        if (request.getLanguageId() != null) {
-
-            languageName =
-                    languageRepository
-                            .findById(
-                                    request.getLanguageId()
-                            )
-                            .orElseThrow(
-                                    () ->
-                                            new ResourceNotFoundException(
-                                                    "Language not found"
-                                            )
-                            )
-                            .getLanguageName();
-        }
-
-        String cityName = null;
-
-        if (request.getCityId() != null) {
-
-            cityName =
-                    cityRepository
-                            .findById(
-                                    request.getCityId()
-                            )
-                            .orElseThrow(
-                                    () ->
-                                            new ResourceNotFoundException(
-                                                    "City not found"
-                                            )
-                            )
-                            .getCityName();
-        }
-
         Specification<Priest> specification =
                 PriestSpecification
                         .filterPriests(
@@ -361,9 +401,9 @@ public class PriestServiceImpl implements PriestService {
 
                                 request.getExperience(),
 
-                                languageName,
+                                request.getLanguageId(),
 
-                                cityName
+                                request.getCityId()
                         );
 
         Page<Priest> priests =
@@ -403,14 +443,21 @@ public class PriestServiceImpl implements PriestService {
 
                     .city(
                             priest.getCity()
+                                    .getCityName()
                     )
 
                     .state(
-                            priest.getState()
+                            priest.getState().getStateName()
                     )
 
-                    .languagesSpoken(
-                            priest.getLanguagesSpoken()
+                    .languages(
+                            priest.getLanguages()
+                                    .stream()
+                                    .map(mapping ->
+                                            mapping.getLanguage()
+                                                    .getLanguageName()
+                                    )
+                                    .toList()
                     )
 
                     .communityId(
@@ -509,19 +556,25 @@ public class PriestServiceImpl implements PriestService {
                 )
 
                 .city(
-                        priest.getCity()
+                        priest.getCity().getCityName()
                 )
 
                 .state(
-                        priest.getState()
+                        priest.getState().getStateName()
                 )
 
                 .pincode(
-                        priest.getPincode()
+                        priest.getPincode().getPincode()
                 )
 
-                .languagesSpoken(
-                        priest.getLanguagesSpoken()
+                .languages(
+                        priest.getLanguages()
+                                .stream()
+                                .map(mapping ->
+                                        mapping.getLanguage()
+                                                .getLanguageName()
+                                )
+                                .toList()
                 )
 
                 .communityId(
@@ -641,17 +694,17 @@ public class PriestServiceImpl implements PriestService {
             );
         }
 
-        Community community =
-                communityRepository
-                        .findById(
-                                request.getCommunityId()
-                        )
-                        .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "Community not found"
-                                        )
-                        );
+        // Check emailId
+        if (!Objects.equals(user.getEmail(), request.getEmail())
+                &&
+                request.getEmail() != null
+                &&
+                usersRepository.findByEmail(request.getEmail()).isPresent()) {
+
+            throw new BadRequestException(
+                    "Email ID already exists."
+            );
+        }
 
         user.setFirstName(
                 request.getFirstName()
@@ -702,28 +755,94 @@ public class PriestServiceImpl implements PriestService {
                 request.getAddressLine2()
         );
 
-        priest.setCity(
-                request.getCity()
-        );
-
-        priest.setState(
-                request.getState()
-        );
-
-        priest.setPincode(
-                request.getPincode()
-        );
-
-        priest.setLanguagesSpoken(
-                StringCommaUtil
-                        .normalizeCommaSeparatedValues(
-                                request.getLanguagesSpoken()
+        State state =
+                stateRepository
+                        .findByIdAndActiveTrue(
+                                request.getStateId()
                         )
-        );
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "State not found"
+                                )
+                        );
 
-        priest.setCommunity(
-                community
-        );
+        City city =
+                cityRepository
+                        .findByIdAndActiveTrue(
+                                request.getCityId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "City not found"
+                                )
+                        );
+
+        if (!city.getState().getId().equals(state.getId())) {
+
+            throw new BadRequestException(
+                    "City does not belong to selected state"
+            );
+        }
+
+        CityPincode pincode =
+                cityPincodeRepository
+                        .findByIdAndActiveTrue(
+                                request.getPincodeId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Pincode not found"
+                                )
+                        );
+
+        if (!pincode.getCity().getId().equals(city.getId())) {
+
+            throw new BadRequestException(
+                    "Pincode does not belong to selected city"
+            );
+        }
+
+        priest.setState(state);
+        priest.setCity(city);
+        priest.setPincode(pincode);
+
+        priest.getLanguages().clear();
+
+        priestRepository.flush();
+
+        for (Long languageId : request.getLanguageIds()) {
+
+            Language language =
+                    languageRepository
+                            .findByIdAndActiveTrue(languageId)
+                            .orElseThrow(() ->
+                                    new ResourceNotFoundException(
+                                            "Language not found"
+                                    )
+                            );
+
+            PriestLanguageMapping mapping =
+                    PriestLanguageMapping
+                            .builder()
+                            .priest(priest)
+                            .language(language)
+                            .build();
+
+            priest.getLanguages().add(mapping);
+        }
+
+        Community community =
+                communityRepository
+                        .findById(
+                                request.getCommunityId()
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Community not found"
+                                )
+                        );
+
+        priest.setCommunity(community);
 
         priest.setExperience(
                 request.getExperience()
@@ -766,19 +885,31 @@ public class PriestServiceImpl implements PriestService {
 
                 .city(
                         priest.getCity()
+                                .getCityName()
                 )
 
                 .state(
                         priest.getState()
+                                .getStateName()
                 )
 
-                .languagesSpoken(
-                        priest.getLanguagesSpoken()
+                .languages(
+                        priest.getLanguages()
+                                .stream()
+                                .map(mapping ->
+                                        mapping.getLanguage()
+                                                .getLanguageName()
+                                )
+                                .toList()
                 )
 
                 .communityId(
+                        priest.getCommunity().getId()
+                )
+
+                .communityName(
                         priest.getCommunity()
-                                .getId()
+                                .getCommunityName()
                 )
 
                 .experience(

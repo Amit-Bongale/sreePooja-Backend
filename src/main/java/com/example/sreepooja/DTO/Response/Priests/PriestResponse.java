@@ -3,6 +3,7 @@ package com.example.sreepooja.DTO.Response.Priests;
 import com.example.sreepooja.Enum.Priests.PriestExperience;
 import lombok.Builder;
 import lombok.Data;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,7 +23,7 @@ public class PriestResponse {
 
     private String state;
 
-    private String languagesSpoken;
+    private List<String> languages;
 
     private Long communityId;
 

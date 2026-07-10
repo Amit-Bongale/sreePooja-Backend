@@ -23,9 +23,9 @@ public class PriestSpecification {
 
             PriestExperience experience,
 
-            String languageName,
+            Long languageId,
 
-            String cityName
+            Long cityId
     ) {
 
         return (root, query, cb) -> {
@@ -136,36 +136,30 @@ public class PriestSpecification {
                 );
             }
 
-            if (languageName != null &&
-                    !languageName.isBlank()) {
+            if (languageId != null) {
+
+                var languageJoin =
+                        root.join("languages");
 
                 predicates.add(
-                        cb.like(
-                                cb.lower(
-                                        root.get(
-                                                "languagesSpoken"
-                                        )
-                                ),
-                                "%" +
-                                        languageName.toLowerCase()
-                                        + "%"
+                        cb.equal(
+                                languageJoin
+                                        .get("language")
+                                        .get("id"),
+                                languageId
                         )
                 );
+
+                query.distinct(true);
             }
 
-            if (cityName != null &&
-                    !cityName.isBlank()) {
+            if (cityId != null) {
 
                 predicates.add(
-                        cb.like(
-                                cb.lower(
-                                        root.get(
-                                                "city"
-                                        )
-                                ),
-                                "%" +
-                                        cityName.toLowerCase()
-                                        + "%"
+                        cb.equal(
+                                root.get("city")
+                                        .get("id"),
+                                cityId
                         )
                 );
             }

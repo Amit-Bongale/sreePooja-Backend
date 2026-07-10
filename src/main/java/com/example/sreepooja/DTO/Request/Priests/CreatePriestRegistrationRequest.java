@@ -1,16 +1,14 @@
 package com.example.sreepooja.DTO.Request.Priests;
 
 import com.example.sreepooja.Enum.Priests.PriestExperience;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
-public class CreatePriestRequest {
+public class CreatePriestRegistrationRequest {
 
     @NotBlank
     private String firstName;
@@ -19,6 +17,14 @@ public class CreatePriestRequest {
 
     @NotNull
     private LocalDate dob;
+
+    @NotBlank
+    private String mobileNumber;
+
+    private String whatsappNumber;
+
+    @Email
+    private String email;
 
     @NotBlank
     private String gothra;
@@ -30,15 +36,6 @@ public class CreatePriestRequest {
 
     @NotBlank
     private String aadhaarNumber;
-
-    @NotBlank
-    private String mobileNumber;
-
-    private String whatsappNumber;
-
-    private String email;
-
-    private String password;
 
     @NotBlank
     private String addressLine1;
@@ -54,16 +51,31 @@ public class CreatePriestRequest {
     @NotNull
     private Long pincodeId;
 
-    @NotEmpty
-    private List<Long> languageIds;
-
     @NotNull
     private Long communityId;
+
+    @NotEmpty
+    private List<Long> languageIds;
 
     @NotNull
     private PriestExperience experience;
 
     private String referredBy;
 
-    private Boolean active;
+    @NotBlank
+    private String bankingName;
+
+    @NotBlank
+    private String bankName;
+
+    @NotBlank
+    private String bankBranchName;
+
+    @NotBlank
+    private String bankIfscCode;
+
+    @NotBlank
+    private String bankAccountNumber;
+
+    private String upiId;
 }

@@ -1,6 +1,7 @@
 package com.example.sreepooja.DTO.Response.Priests;
 
 import com.example.sreepooja.Enum.Priests.PriestExperience;
+import com.example.sreepooja.Enum.Priests.PriestRegistrationStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,15 +11,21 @@ import java.util.List;
 
 @Data
 @Builder
-public class PriestDetailsResponse {
+public class PriestRegistrationDetailsResponse {
 
-    private Long priestId;
+    private Long registrationId;
 
     private String firstName;
 
     private String lastName;
 
     private LocalDate dob;
+
+    private String mobileNumber;
+
+    private String whatsappNumber;
+
+    private String email;
 
     private String gothra;
 
@@ -28,33 +35,41 @@ public class PriestDetailsResponse {
 
     private String aadhaarNumber;
 
-    private String mobileNumber;
-
-    private String whatsappNumber;
-
-    private String email;
-
     private String addressLine1;
 
     private String addressLine2;
 
-    private String city;
-
     private String state;
+
+    private String city;
 
     private String pincode;
 
+    private String community;
+
     private List<String> languages;
-
-    private Long communityId;
-
-    private String communityName;
 
     private PriestExperience experience;
 
     private String referredBy;
 
-    private Boolean active;
+    private String bankingName;
+
+    private String bankName;
+
+    private String bankBranchName;
+
+    private String bankIfscCode;
+
+    private String bankAccountNumber;
+
+    private String upiId;
+
+    private String priestPhotoUrl;
+
+    private String aadhaarPdfUrl;
+
+    private PriestRegistrationStatus status;
 
     private LocalDateTime createdAt;
 }

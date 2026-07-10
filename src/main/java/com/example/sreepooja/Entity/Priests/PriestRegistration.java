@@ -4,24 +4,34 @@ import com.example.sreepooja.Entity.Masters.City;
 import com.example.sreepooja.Entity.Masters.CityPincode;
 import com.example.sreepooja.Entity.Masters.Community;
 import com.example.sreepooja.Entity.Masters.State;
-import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.Priests.PriestExperience;
+import com.example.sreepooja.Enum.Priests.PriestRegistrationStatus;
+import com.example.sreepooja.Enum.Priests.PriestRegistrationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(
-        name = "priests",
+        name = "priest_registrations",
         indexes = {
                 @Index(
-                        name = "idx_priest_aadhaar",
+                        name = "idx_priest_registration_mobile",
+                        columnList = "mobileNumber"
+                ),
+                @Index(
+                        name = "idx_priest_registration_aadhaar",
                         columnList = "aadhaarNumber"
+                ),
+                @Index(
+                        name = "idx_priest_registration_status",
+                        columnList = "status"
                 )
         }
 )
@@ -30,40 +40,48 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Priest {
+public class PriestRegistration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY,
-            optional = false)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            unique = true
-    )
-    private Users user;
+    @Column(nullable = false)
+    private String firstName;
 
-    @Column(nullable = false, length = 100)
-    private String gothra;
+    private String lastName;
 
-    @Column(length = 200)
-    private String pravara;
+    @Column(nullable = false, unique = true)
+    private String mobileNumber;
 
-    @Column(nullable = false, length = 150)
-    private String nativePlace;
-
-    @Column(nullable = false, unique = true, length = 20)
-    private String aadhaarNumber;
-
-    @Column(length = 15)
     private String whatsappNumber;
 
-    @Column(nullable = false, length = 500)
+    @Column(unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private LocalDate dob;
+
+    @Column(nullable = false)
+    private String gothra;
+
+    private String pravara;
+
+    @Column(nullable = false)
+    private String nativePlace;
+
+    @Column(nullable = false, unique = true)
+    private String aadhaarNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PriestExperience experience;
+
+    private String referredBy;
+
+    @Column(nullable = false)
     private String addressLine1;
 
-    @Column(length = 500)
     private String addressLine2;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,13 +105,6 @@ public class Priest {
     )
     private CityPincode pincode;
 
-    @OneToMany(
-            mappedBy = "priest",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<PriestLanguageMapping> languages = new ArrayList<>();
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "community_id",
@@ -101,36 +112,46 @@ public class Priest {
     )
     private Community community;
 
-    @Enumerated(EnumType.STRING)
+    @OneToMany(
+            mappedBy = "registration",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<PriestRegistrationLanguageMapping> languages =
+            new ArrayList<>();
+
     @Column(nullable = false)
-    private PriestExperience experience;
-
-    @Column(length = 100)
-    private String referredBy;
-
     private String bankingName;
 
+    @Column(nullable = false)
     private String bankName;
 
+    @Column(nullable = false)
     private String bankBranchName;
 
+    @Column(nullable = false)
     private String bankIfscCode;
 
+    @Column(nullable = false)
     private String bankAccountNumber;
 
     private String upiId;
 
+    @Column(nullable = false)
     private String priestPhotoUrl;
 
+    @Column(nullable = false)
     private String aadhaarPdfUrl;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Boolean active = true;
+    private PriestRegistrationStatus status =
+            PriestRegistrationStatus.PENDING;
 
     @CreationTimestamp
-    @Column(nullable = false,
-            updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
