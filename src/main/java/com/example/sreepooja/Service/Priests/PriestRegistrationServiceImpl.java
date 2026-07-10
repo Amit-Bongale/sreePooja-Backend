@@ -252,7 +252,7 @@ public class PriestRegistrationServiceImpl
 
             priestRegistrationRepository.save(registration);
 
-            return "Registration submitted successfully. Our team will review your application.";
+            return "Registration submitted successfully.";
 
         } catch (Exception ex) {
 
