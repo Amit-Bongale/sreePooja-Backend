@@ -3,7 +3,10 @@ package com.example.sreepooja.Controller.Admin.Priests;
 import com.example.sreepooja.DTO.Request.Priests.CreatePriestRequest;
 import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
 import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
+import com.example.sreepooja.DTO.Response.Priests.PriestRegistrationCardResponse;
+import com.example.sreepooja.DTO.Response.Priests.PriestRegistrationDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
+import com.example.sreepooja.Service.Priests.PriestRegistrationService;
 import com.example.sreepooja.Service.Priests.PriestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class PriestController {
 
     private final PriestService priestService;
+    private final PriestRegistrationService priestRegistrationService;
 
     @PostMapping
     public ResponseEntity<PriestResponse>
@@ -95,6 +99,44 @@ public class PriestController {
                         priestId,
                         request
                 )
+        );
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<Page<PriestRegistrationCardResponse>>
+    getPendingRegistrations(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+    ) {
+
+        return ResponseEntity.ok(
+
+                priestRegistrationService
+                        .getPendingRegistrations(
+                                page,
+                                size
+                        )
+        );
+    }
+
+    @GetMapping("/pending/{registrationId}")
+    public ResponseEntity<PriestRegistrationDetailsResponse>
+    getRegistrationDetails(
+
+            @PathVariable
+            Long registrationId
+    ) {
+
+        return ResponseEntity.ok(
+
+                priestRegistrationService
+                        .getRegistrationDetails(
+                                registrationId
+                        )
         );
     }
 }
