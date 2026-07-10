@@ -5,16 +5,23 @@ import com.example.sreepooja.DTO.Response.File.FileUploadResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestRegistrationCardResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestRegistrationDetailsResponse;
 import com.example.sreepooja.Entity.Masters.*;
+import com.example.sreepooja.Entity.Priests.Priest;
+import com.example.sreepooja.Entity.Priests.PriestLanguageMapping;
 import com.example.sreepooja.Entity.Priests.PriestRegistration;
 import com.example.sreepooja.Entity.Priests.PriestRegistrationLanguageMapping;
+import com.example.sreepooja.Entity.UserRole;
+import com.example.sreepooja.Entity.Users;
 import com.example.sreepooja.Enum.File.FileType;
 import com.example.sreepooja.Enum.Priests.PriestRegistrationStatus;
+import com.example.sreepooja.Enum.UserRoles;
+import com.example.sreepooja.Enum.UserStatus;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.ExceptionHandlers.InvalidFileException;
 import com.example.sreepooja.ExceptionHandlers.ResourceNotFoundException;
 import com.example.sreepooja.Repository.Masters.*;
 import com.example.sreepooja.Repository.Priests.PriestRegistrationRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
+import com.example.sreepooja.Repository.Users.UserRoleRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Service.File.FileService;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +29,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +58,10 @@ public class PriestRegistrationServiceImpl
     private final LanguageRepository languageRepository;
 
     private final FileService fileService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final UserRoleRepository userRoleRepository;
 
     @Override
     @Transactional
@@ -475,5 +489,283 @@ public class PriestRegistrationServiceImpl
                 )
 
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public String approveRegistration(Long registrationId){
+        PriestRegistration registration =
+                priestRegistrationRepository
+                        .findById(registrationId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Registration not found"
+                                )
+                        );
+
+        if (registration.getStatus() != PriestRegistrationStatus.PENDING) {
+
+            throw new BadRequestException(
+                    "Registration already processed"
+            );
+        }
+
+        if (usersRepository.existsByMobileNo(
+                registration.getMobileNumber()
+        )) {
+
+            throw new BadRequestException(
+                    "Mobile number already exists"
+            );
+        }
+
+        if (priestRepository.existsByWhatsappNumber(
+                registration.getMobileNumber()
+        )) {
+
+            throw new BadRequestException(
+                    "Mobile number already exists"
+            );
+        }
+
+        if (registration.getWhatsappNumber() != null) {
+
+            if (usersRepository.existsByMobileNo(
+                    registration.getWhatsappNumber()
+            )) {
+
+                throw new BadRequestException(
+                        "WhatsApp number already exists"
+                );
+            }
+
+            if (priestRepository.existsByWhatsappNumber(
+                    registration.getWhatsappNumber()
+            )) {
+
+                throw new BadRequestException(
+                        "WhatsApp number already exists"
+                );
+            }
+        }
+
+        if (priestRepository.existsByAadhaarNumber(
+                registration.getAadhaarNumber()
+        )) {
+
+            throw new BadRequestException(
+                    "Aadhaar already exists"
+            );
+        }
+
+        if (registration.getEmail() != null &&
+                usersRepository.findByEmail(
+                        registration.getEmail()
+                ).isPresent()) {
+
+            throw new BadRequestException(
+                    "Email already exists"
+            );
+        }
+
+        String first =
+                registration
+                        .getFirstName().trim().toLowerCase();
+
+        String password =
+                first.toLowerCase()
+                        +
+                        registration.getDob().format(
+                                DateTimeFormatter.ofPattern("ddMM")
+                        );
+
+        Users user = new Users();
+
+        user.setFirstName(
+                registration.getFirstName()
+        );
+
+        user.setLastName(
+                registration.getLastName()
+        );
+
+        user.setMobileNo(
+                registration.getMobileNumber()
+        );
+
+        user.setEmail(
+                registration.getEmail()
+        );
+
+        user.setDob(
+                registration.getDob()
+        );
+
+        user.setPassword(
+                passwordEncoder.encode(password)
+        );
+
+        user.setStatus(
+                UserStatus.ACTIVE
+        );
+
+        usersRepository.save(user);
+
+        UserRole role = new UserRole();
+
+        role.setUser(user);
+
+        role.setRole(
+                UserRoles.PRIEST
+        );
+
+        userRoleRepository.save(role);
+
+        Priest priest =
+                Priest.builder()
+
+                        .user(user)
+
+                        .gothra(
+                                registration.getGothra()
+                        )
+
+                        .pravara(
+                                registration.getPravara()
+                        )
+
+                        .nativePlace(
+                                registration.getNativePlace()
+                        )
+
+                        .aadhaarNumber(
+                                registration.getAadhaarNumber()
+                        )
+
+                        .whatsappNumber(
+                                registration.getWhatsappNumber()
+                        )
+
+                        .addressLine1(
+                                registration.getAddressLine1()
+                        )
+
+                        .addressLine2(
+                                registration.getAddressLine2()
+                        )
+
+                        .state(
+                                registration.getState()
+                        )
+
+                        .city(
+                                registration.getCity()
+                        )
+
+                        .pincode(
+                                registration.getPincode()
+                        )
+
+                        .community(
+                                registration.getCommunity()
+                        )
+
+                        .experience(
+                                registration.getExperience()
+                        )
+
+                        .referredBy(
+                                registration.getReferredBy()
+                        )
+
+                        .bankingName(
+                                registration.getBankingName()
+                        )
+
+                        .bankName(
+                                registration.getBankName()
+                        )
+
+                        .bankBranchName(
+                                registration.getBankBranchName()
+                        )
+
+                        .bankIfscCode(
+                                registration.getBankIfscCode()
+                        )
+
+                        .bankAccountNumber(
+                                registration.getBankAccountNumber()
+                        )
+
+                        .upiId(
+                                registration.getUpiId()
+                        )
+
+                        .priestPhotoUrl(
+                                registration.getPriestPhotoUrl()
+                        )
+
+                        .aadhaarPdfUrl(
+                                registration.getAadhaarPdfUrl()
+                        )
+
+                        .active(true)
+
+                        .build();
+
+        for (PriestRegistrationLanguageMapping registrationLanguage
+                : registration.getLanguages()) {
+
+            PriestLanguageMapping mapping =
+                    PriestLanguageMapping.builder()
+                            .priest(priest)
+                            .language(
+                                    registrationLanguage.getLanguage()
+                            )
+                            .build();
+
+            priest.getLanguages().add(mapping);
+        }
+
+        priestRepository.save(priest);
+
+        priestRegistrationRepository.delete(
+                registration
+        );
+
+        return "Priest approved successfully.";
+    }
+
+    @Override
+    @Transactional
+    public String rejectRegistration(Long registrationId) {
+
+        PriestRegistration registration =
+                priestRegistrationRepository
+                        .findById(registrationId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Registration not found"
+                                )
+                        );
+
+        if (registration.getPriestPhotoUrl() != null) {
+
+            fileService.deleteImage(
+                    registration.getPriestPhotoUrl()
+            );
+        }
+
+        if (registration.getAadhaarPdfUrl() != null) {
+
+            fileService.deleteImage(
+                    registration.getAadhaarPdfUrl()
+            );
+        }
+
+        priestRegistrationRepository.delete(registration);
+
+        return "Registration rejected successfully.";
     }
 }

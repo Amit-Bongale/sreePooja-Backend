@@ -23,12 +23,12 @@ public interface PriestRegistrationService {
             Long registrationId
     );
 
-//    String approveRegistration(
-//            Long registrationId
-//    );
-//
-//    String rejectRegistration(
-//            Long registrationId
-//    );
+    String approveRegistration(
+            Long registrationId
+    );
+
+    String rejectRegistration(
+            Long registrationId
+    );
 
 }

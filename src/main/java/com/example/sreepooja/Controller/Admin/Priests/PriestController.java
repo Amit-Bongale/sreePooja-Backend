@@ -139,4 +139,28 @@ public class PriestController {
                         )
         );
     }
+
+    @PostMapping("/pending/{registrationId}/approve")
+    public ResponseEntity<String> approveRegistration(
+            @PathVariable Long registrationId
+    ) {
+
+        return ResponseEntity.ok(
+                priestRegistrationService
+                        .approveRegistration(
+                                registrationId
+                        )
+        );
+    }
+
+    @DeleteMapping("/pending/{registrationId}/reject")
+    public ResponseEntity<String> rejectRegistration(
+            @PathVariable Long registrationId
+    ) {
+
+        return ResponseEntity.ok(
+                priestRegistrationService
+                        .rejectRegistration(registrationId)
+        );
+    }
 }
