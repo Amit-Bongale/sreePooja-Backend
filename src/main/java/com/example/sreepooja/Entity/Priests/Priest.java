@@ -87,6 +87,7 @@ public class Priest {
     )
     private CityPincode pincode;
 
+    @Builder.Default
     @OneToMany(
             mappedBy = "priest",
             cascade = CascadeType.ALL,
