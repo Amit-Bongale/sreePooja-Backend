@@ -586,11 +586,6 @@ public class PriestServiceImpl implements PriestService {
                                 .toList()
                 )
 
-                .communityId(
-                        priest.getCommunity()
-                                .getId()
-                )
-
                 .communityName(
                         priest.getCommunity()
                                 .getCommunityName()
@@ -602,6 +597,38 @@ public class PriestServiceImpl implements PriestService {
 
                 .referredBy(
                         priest.getReferredBy()
+                )
+
+                .bankingName(
+                        priest.getBankingName()
+                )
+
+                .bankName(
+                        priest.getBankName()
+                )
+
+                .bankBranchName(
+                        priest.getBankBranchName()
+                )
+
+                .bankIfscCode(
+                        priest.getBankIfscCode()
+                )
+
+                .bankAccountNumber(
+                        priest.getBankAccountNumber()
+                )
+
+                .upiId(
+                        priest.getUpiId()
+                )
+
+                .priestPhotoUrl(
+                        priest.getPriestPhotoUrl()
+                )
+
+                .aadhaarPdfUrl(
+                        priest.getAadhaarPdfUrl()
                 )
 
                 .active(

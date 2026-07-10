@@ -54,6 +54,22 @@ public class PriestDetailsResponse {
 
     private String referredBy;
 
+    private String bankingName;
+
+    private String bankName;
+
+    private String bankBranchName;
+
+    private String bankIfscCode;
+
+    private String bankAccountNumber;
+
+    private String upiId;
+
+    private String priestPhotoUrl;
+
+    private String aadhaarPdfUrl;
+
     private Boolean active;
 
     private LocalDateTime createdAt;
