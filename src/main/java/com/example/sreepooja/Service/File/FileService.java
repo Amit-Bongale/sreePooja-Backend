@@ -11,5 +11,10 @@ public interface FileService {
             FileType fileType
     );
 
+    FileUploadResponse uploadDocument(
+            MultipartFile file,
+            FileType fileType
+    );
+
     void deleteImage(String fileUrl);
 }

@@ -10,4 +10,7 @@ public interface PriestRegistrationService {
             MultipartFile priestPhoto,
             MultipartFile aadhaarPdf
     );
+
+
+
 }

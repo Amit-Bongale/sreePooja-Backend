@@ -7,7 +7,10 @@ public enum FileType {
     CATEGORIES("categories"),
 
     POOJA_SERVICE_THUMBNAILS("pooja-services/thumbnails"),
-    POOJA_SERVICE_BANNERS("pooja-services/banners");
+    POOJA_SERVICE_BANNERS("pooja-services/banners"),
+
+    PRIEST_PHOTOS("priests/photos"),
+    PRIEST_AADHAAR("priests/aadhaar");
 
     private final String folderName;
 
