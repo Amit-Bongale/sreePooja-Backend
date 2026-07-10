@@ -50,8 +50,9 @@ public class PriestRegistrationServiceImpl
             MultipartFile aadhaarPdf
     ) {
         if (usersRepository.existsByMobileNo(request.getMobileNumber())
-                || priestRepository.existsByMobileNo(request.getMobileNumber())
-                || priestRegistrationRepository.existsByMobileNumber(request.getMobileNumber())) {
+                || priestRegistrationRepository.existsByMobileNumber(request.getMobileNumber())
+        ||priestRegistrationRepository.existsByWhatsappNumber(request.getMobileNumber())
+        ||priestRepository.existsByWhatsappNumber(request.getWhatsappNumber())) {
 
             throw new BadRequestException(
                     "Mobile number already exists"
@@ -61,6 +62,7 @@ public class PriestRegistrationServiceImpl
         if (request.getWhatsappNumber() != null) {
 
             if (usersRepository.existsByMobileNo(request.getWhatsappNumber())
+                    || priestRegistrationRepository.existsByMobileNumber(request.getWhatsappNumber())
                     || priestRepository.existsByWhatsappNumber(request.getWhatsappNumber())
                     || priestRegistrationRepository.existsByWhatsappNumber(request.getWhatsappNumber())) {
 

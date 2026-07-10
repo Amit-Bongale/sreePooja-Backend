@@ -59,6 +59,15 @@ public class PriestServiceImpl implements PriestService {
             );
         }
 
+        if (priestRepository
+                .existsByWhatsappNumber(request.getMobileNumber()
+        )) {
+
+            throw new BadRequestException(
+                    "Mobile number belongs to another User"
+            );
+        }
+
         if (request.getWhatsappNumber() != null
                 &&
                 priestRepository

@@ -16,8 +16,6 @@ public interface PriestRepository
         extends JpaRepository<Priest, Long>,
         JpaSpecificationExecutor<Priest> {
 
-    boolean existsByMobileNo(String mobile);
-
     @Override
     @EntityGraph(
             attributePaths = {
