@@ -18,6 +18,7 @@ import com.example.sreepooja.Repository.Users.UsersRepository;
 import com.example.sreepooja.Service.CustomUserDetails.CustomUserDetails;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import com.razorpay.Utils;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -248,11 +249,11 @@ public class PaymentsServiceImpl implements PaymentsService{
             );
 
             boolean isValid =
-                    true;
-//                    Utils.verifyPaymentSignature(
-//                            options,
-//                            razorpayKeySecret
-//                    );
+//                    true;
+                    Utils.verifyPaymentSignature(
+                            options,
+                            razorpayKeySecret
+                    );
 
             if (!isValid) {
 
