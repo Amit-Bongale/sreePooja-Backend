@@ -34,4 +34,6 @@ public interface PaymentRepository
             @Param("status")
             PaymentStatus status
     );
+
+    List<Payments> findByBookingIdOrderByCreatedAtAsc(Long bookingId);
 }

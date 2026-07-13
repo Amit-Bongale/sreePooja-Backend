@@ -1,6 +1,7 @@
 package com.example.sreepooja.Entity;
 
 import com.example.sreepooja.Entity.Bookings.Booking;
+import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -59,6 +60,10 @@ public class Payments {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentOption paymentOption;
 
     @CreationTimestamp
     @Column(

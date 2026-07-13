@@ -1,5 +1,6 @@
 package com.example.sreepooja.DTO.Response.Bookings;
 
+import com.example.sreepooja.DTO.Response.Payments.PaymentHistoryResponse;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -76,6 +78,8 @@ public class AdminBookingDetailsResponse {
     private BigDecimal advanceAmount;
 
     private BigDecimal balanceAmount;
+
+    private List<PaymentHistoryResponse> payments;
 
     private LocalDateTime bookedAt;
 }

@@ -2,6 +2,7 @@ package com.example.sreepooja.Service.Bookings;
 
 import com.example.sreepooja.DTO.Request.Bookings.*;
 import com.example.sreepooja.DTO.Response.Bookings.*;
+import com.example.sreepooja.DTO.Response.Payments.PaymentHistoryResponse;
 import com.example.sreepooja.DTO.Users.UserResponse;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Entity.Masters.City;
@@ -23,6 +24,7 @@ import com.example.sreepooja.Repository.Bookings.BookingRepository;
 import com.example.sreepooja.Repository.Masters.CityPincodeRepository;
 import com.example.sreepooja.Repository.Masters.CityRepository;
 import com.example.sreepooja.Repository.Masters.StateRepository;
+import com.example.sreepooja.Repository.PaymentRepository;
 import com.example.sreepooja.Repository.Poojas.PoojaServicesRepository;
 import com.example.sreepooja.Repository.Poojas.ServicePackageRepository;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
@@ -43,6 +45,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -63,6 +66,8 @@ public class BookingServiceImpl implements BookingService {
     private final PriestRepository priestRepository;
 
     private final PoojaServicesRepository poojaServicesRepository;
+
+    private final PaymentRepository paymentRepository;
 
     @Override
     public CheckoutResponse getCheckout(Long packageId) {
@@ -870,6 +875,46 @@ public class BookingServiceImpl implements BookingService {
             + booking.getPriest().getUser().getLastName()
         : "Not Assigned";
 
+        List<PaymentHistoryResponse> payments =
+                paymentRepository
+                        .findByBookingIdOrderByCreatedAtAsc(
+                                booking.getId()
+                        )
+                        .stream()
+                        .map(payment ->
+
+                                PaymentHistoryResponse
+                                        .builder()
+
+                                        .amount(
+                                                payment.getAmount()
+                                        )
+
+                                        .paymentStatus(
+                                                payment.getStatus()
+                                        )
+
+                                        .paymentOption(
+                                                payment.getPaymentOption()
+                                        )
+
+                                        .razorpayOrderId(
+                                                payment.getRazorpayOrderId()
+                                        )
+
+                                        .razorpayPaymentId(
+                                                payment.getRazorpayPaymentId()
+                                        )
+
+                                        .paidAt(
+                                                payment.getCreatedAt()
+                                        )
+
+                                        .build()
+
+                        )
+                        .toList();
+
         return AdminBookingDetailsResponse
                 .builder()
 
@@ -981,6 +1026,8 @@ public class BookingServiceImpl implements BookingService {
                 .balanceAmount(
                         booking.getBalanceAmount()
                 )
+
+                .payments(payments)
 
                 .bookedAt(
                         booking.getCreatedAt()
