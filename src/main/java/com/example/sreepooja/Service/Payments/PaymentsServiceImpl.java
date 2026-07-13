@@ -308,9 +308,12 @@ public class PaymentsServiceImpl implements PaymentsService{
                 }
             }
 
-            booking.setBookingStatus(
-                    BookingStatus.PAYMENT_RECEIVED
-            );
+            if (booking.getBookingStatus() == BookingStatus.PENDING_PAYMENT) {
+
+                booking.setBookingStatus(
+                        BookingStatus.PAYMENT_RECEIVED
+                );
+            }
 
             paymentRepository.save(payment);
 
