@@ -18,6 +18,16 @@ public class PriestRegistrationCardResponse {
 
     private String mobileNumber;
 
+    private String community;
+
+    private String state;
+
+    private String city;
+
+    private String pincode;
+
+    private String priestPhotoUrl;
+
     private PriestRegistrationStatus status;
 
     private LocalDateTime createdAt;

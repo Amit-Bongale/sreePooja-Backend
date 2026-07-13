@@ -31,5 +31,7 @@ public class PriestResponse {
 
     private PriestExperience experience;
 
+    private String priestPhotoUrl;
+
     private Boolean active;
 }

@@ -330,6 +330,16 @@ public class PriestRegistrationServiceImpl
                                 registration.getMobileNumber()
                         )
 
+                        .priestPhotoUrl(registration.getPriestPhotoUrl())
+
+                        .community(registration.getCommunity().getCommunityName())
+
+                        .state(registration.getState().getStateName())
+
+                        .city(registration.getCity().getCityName())
+
+                        .pincode(registration.getPincode().getPincode())
+
                         .status(
                                 registration.getStatus()
                         )

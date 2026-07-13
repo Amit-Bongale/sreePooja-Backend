@@ -483,6 +483,8 @@ public class PriestServiceImpl implements PriestService {
                             priest.getExperience()
                     )
 
+                    .priestPhotoUrl(priest.getPriestPhotoUrl())
+
                     .active(
                             priest.getActive()
                     )
