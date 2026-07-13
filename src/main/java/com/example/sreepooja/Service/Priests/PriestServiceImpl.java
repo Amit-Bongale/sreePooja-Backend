@@ -593,6 +593,16 @@ public class PriestServiceImpl implements PriestService {
                                 .toList()
                 )
 
+                .languageIds(priest.getLanguages().stream().map(mapping -> mapping.getLanguage().getId()).toList())
+
+                .communityId(priest.getCommunity().getId())
+
+                .stateId(priest.getState().getId())
+
+                .cityId(priest.getCity().getId())
+
+                .pincodeId(priest.getPincode().getId())
+
                 .communityName(
                         priest.getCommunity()
                                 .getCommunityName()

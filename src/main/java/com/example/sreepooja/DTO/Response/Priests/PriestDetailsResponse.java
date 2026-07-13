@@ -46,6 +46,14 @@ public class PriestDetailsResponse {
 
     private List<String> languages;
 
+    private Long stateId;
+
+    private Long cityId;
+
+    private Long pincodeId;
+
+    private List<Long> languageIds;
+
     private Long communityId;
 
     private String communityName;
