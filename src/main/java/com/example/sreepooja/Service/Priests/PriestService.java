@@ -5,6 +5,7 @@ import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
 import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PriestService {
 
@@ -24,6 +25,8 @@ public interface PriestService {
 
     PriestResponse updatePriest(
             Long priestId,
-            CreatePriestRequest request
+            CreatePriestRequest request,
+            MultipartFile priestPhoto,
+            MultipartFile aadhaarPdf
     );
 }

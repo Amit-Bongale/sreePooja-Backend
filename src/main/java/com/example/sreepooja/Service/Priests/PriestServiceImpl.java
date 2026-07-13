@@ -2,6 +2,7 @@ package com.example.sreepooja.Service.Priests;
 
 import com.example.sreepooja.DTO.Request.Priests.CreatePriestRequest;
 import com.example.sreepooja.DTO.Request.Priests.PriestFilterRequest;
+import com.example.sreepooja.DTO.Response.File.FileUploadResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestDetailsResponse;
 import com.example.sreepooja.DTO.Response.Priests.PriestResponse;
 import com.example.sreepooja.Entity.Masters.*;
@@ -9,6 +10,7 @@ import com.example.sreepooja.Entity.Priests.Priest;
 import com.example.sreepooja.Entity.Priests.PriestLanguageMapping;
 import com.example.sreepooja.Entity.UserRole;
 import com.example.sreepooja.Entity.Users;
+import com.example.sreepooja.Enum.File.FileType;
 import com.example.sreepooja.Enum.UserRoles;
 import com.example.sreepooja.Enum.UserStatus;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
@@ -17,6 +19,7 @@ import com.example.sreepooja.Repository.Masters.*;
 import com.example.sreepooja.Repository.Priests.PriestRepository;
 import com.example.sreepooja.Repository.Users.UserRoleRepository;
 import com.example.sreepooja.Repository.Users.UsersRepository;
+import com.example.sreepooja.Service.File.FileService;
 import com.example.sreepooja.Specification.PriestSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Objects;
 
@@ -43,6 +47,7 @@ public class PriestServiceImpl implements PriestService {
     private final LanguageRepository languageRepository;
     private final CommunityRepository communityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
 
     @Override
     @Transactional
@@ -650,7 +655,9 @@ public class PriestServiceImpl implements PriestService {
 
             Long priestId,
 
-            CreatePriestRequest request
+            CreatePriestRequest request,
+            MultipartFile priestPhoto,
+            MultipartFile aadhaarPdf
     ) {
 
         Priest priest =
@@ -792,6 +799,64 @@ public class PriestServiceImpl implements PriestService {
         priest.setAddressLine2(
                 request.getAddressLine2()
         );
+
+        priest.setBankingName(
+                request.getBankingName()
+        );
+
+        priest.setBankName(
+                request.getBankName()
+        );
+
+        priest.setBankBranchName(
+                request.getBankBranchName()
+        );
+
+        priest.setBankIfscCode(
+                request.getBankIfscCode()
+        );
+
+        priest.setBankAccountNumber(
+                request.getBankAccountNumber()
+        );
+
+        priest.setUpiId(
+                request.getUpiId()
+        );
+
+        if (priestPhoto != null && !priestPhoto.isEmpty()) {
+
+            if (priest.getPriestPhotoUrl() != null) {
+                fileService.deleteImage(priest.getPriestPhotoUrl());
+            }
+
+            FileUploadResponse response =
+                    fileService.uploadImage(
+                            priestPhoto,
+                            FileType.PRIEST_PHOTOS
+                    );
+
+            priest.setPriestPhotoUrl(
+                    response.getFileUrl()
+            );
+        }
+
+        if (aadhaarPdf != null && !aadhaarPdf.isEmpty()) {
+
+            if (priest.getAadhaarPdfUrl() != null) {
+                fileService.deleteImage(priest.getAadhaarPdfUrl());
+            }
+
+            FileUploadResponse response =
+                    fileService.uploadDocument(
+                            aadhaarPdf,
+                            FileType.PRIEST_AADHAAR
+                    );
+
+            priest.setAadhaarPdfUrl(
+                    response.getFileUrl()
+            );
+        }
 
         State state =
                 stateRepository

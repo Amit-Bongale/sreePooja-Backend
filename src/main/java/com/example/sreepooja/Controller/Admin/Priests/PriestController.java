@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/admin/priests")
@@ -89,15 +90,22 @@ public class PriestController {
             @PathVariable
             Long priestId,
 
-            @Valid
-            @RequestBody
-            CreatePriestRequest request
+            @RequestPart("request")
+            CreatePriestRequest request,
+
+            @RequestPart(value = "priestPhoto", required = false)
+            MultipartFile priestPhoto,
+
+            @RequestPart(value = "aadhaarPdf", required = false)
+            MultipartFile aadhaarPdf
     ) {
 
         return ResponseEntity.ok(
                 priestService.updatePriest(
                         priestId,
-                        request
+                        request,
+                        priestPhoto,
+                        aadhaarPdf
                 )
         );
     }

@@ -66,4 +66,16 @@ public class CreatePriestRequest {
     private String referredBy;
 
     private Boolean active;
+
+    private String bankingName;
+
+    private String bankName;
+
+    private String bankBranchName;
+
+    private String bankIfscCode;
+
+    private String bankAccountNumber;
+
+    private String upiId;
 }
