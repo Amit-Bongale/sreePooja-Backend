@@ -32,10 +32,12 @@ public class ReportController {
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=report"
+                        "attachment; filename=Bookings.xlsx"
                 )
                 .contentType(
-                        MediaType.APPLICATION_OCTET_STREAM
+                        MediaType.parseMediaType(
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
                 )
                 .body(file);
     }

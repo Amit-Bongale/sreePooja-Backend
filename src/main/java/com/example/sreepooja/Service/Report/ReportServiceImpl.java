@@ -5,17 +5,28 @@ import com.example.sreepooja.Enum.Report.ExportFormat;
 import com.example.sreepooja.Enum.Report.ReportType;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.Report.ReportGenerator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Service
-public class ReportServiceImpl
-        implements ReportService {
+public class ReportServiceImpl implements ReportService {
 
     private final Map<ReportType, ReportGenerator> generators;
+
+    public ReportServiceImpl(
+            List<ReportGenerator> reportGenerators
+    ) {
+
+        this.generators = reportGenerators.stream()
+                .collect(Collectors.toMap(
+                        ReportGenerator::getSupportedReport,
+                        Function.identity()
+                ));
+    }
 
     @Override
     public byte[] exportReport(
@@ -26,9 +37,7 @@ public class ReportServiceImpl
                 generators.get(request.getType());
 
         if (generator == null) {
-            throw new BadRequestException(
-                    "Unsupported report type."
-            );
+            throw new BadRequestException("Unsupported report type.");
         }
 
         if (request.getFormat() == ExportFormat.PDF) {
@@ -37,5 +46,4 @@ public class ReportServiceImpl
 
         return generator.generateExcel(request);
     }
-
 }

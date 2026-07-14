@@ -1,7 +1,6 @@
 package com.example.sreepooja.DTO.Request.Report;
 
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
-import com.example.sreepooja.Enum.Bookings.PaymentOption;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Report.ExportFormat;
 import com.example.sreepooja.Enum.Report.ReportType;
@@ -18,14 +17,15 @@ public class ExportReportRequest {
 
     private ExportFormat format;
 
-    private LocalDate fromDate;
+    private Long bookingId;
 
-    private LocalDate toDate;
+    private String mobileNumber;
 
     private BookingStatus bookingStatus;
 
     private PaymentStatus paymentStatus;
 
-    private PaymentOption paymentOption;
+    private LocalDate fromDate;
 
+    private LocalDate toDate;
 }

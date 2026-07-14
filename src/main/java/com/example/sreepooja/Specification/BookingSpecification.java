@@ -1,5 +1,6 @@
 package com.example.sreepooja.Specification;
 
+import com.example.sreepooja.DTO.Request.Report.ExportReportRequest;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Enum.Bookings.BookingStatus;
 import com.example.sreepooja.Enum.Bookings.PaymentStatus;
@@ -117,5 +118,19 @@ public class BookingSpecification {
                     )
             );
         };
+    }
+
+    public static Specification<Booking> filterBookings(
+            ExportReportRequest request
+    ) {
+
+        return filterBookings(
+                request.getBookingId(),
+                request.getMobileNumber(),
+                request.getBookingStatus(),
+                request.getPaymentStatus(),
+                request.getFromDate(),
+                request.getToDate()
+        );
     }
 }
