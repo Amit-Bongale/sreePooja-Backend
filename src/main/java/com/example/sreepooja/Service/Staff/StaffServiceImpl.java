@@ -321,12 +321,40 @@ public class StaffServiceImpl implements StaffService {
             user.setDob(request.getDob());
         }
 
-        if (request.getPassword() != null
-                && !request.getPassword().isBlank()) {
+        if (request.getNewPassword() != null
+                && !request.getNewPassword().isBlank()) {
+
+            if (request.getCurrentPassword() == null
+                    || request.getCurrentPassword().isBlank()) {
+
+                throw new BadRequestException(
+                        "Current password is required"
+                );
+            }
+
+            if (!passwordEncoder.matches(
+                    request.getCurrentPassword(),
+                    user.getPassword()
+            )) {
+
+                throw new BadRequestException(
+                        "Current password is incorrect"
+                );
+            }
+
+            if (passwordEncoder.matches(
+                    request.getNewPassword(),
+                    user.getPassword()
+            )) {
+
+                throw new BadRequestException(
+                        "New password cannot be the same as the current password"
+                );
+            }
 
             user.setPassword(
                     passwordEncoder.encode(
-                            request.getPassword()
+                            request.getNewPassword()
                     )
             );
         }

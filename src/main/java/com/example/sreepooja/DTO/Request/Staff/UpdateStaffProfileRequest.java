@@ -21,5 +21,7 @@ public class UpdateStaffProfileRequest {
 
     private LocalDate dob;
 
-    private String password;
+    private String currentPassword;
+
+    private String newPassword;
 }
