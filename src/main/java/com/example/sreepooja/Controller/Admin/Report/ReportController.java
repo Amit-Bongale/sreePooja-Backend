@@ -1,6 +1,7 @@
 package com.example.sreepooja.Controller.Admin.Report;
 
 import com.example.sreepooja.DTO.Request.Report.ExportReportRequest;
+import com.example.sreepooja.Enum.Report.ExportFormat;
 import com.example.sreepooja.Service.Report.ReportService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,10 +30,15 @@ public class ReportController {
         byte[] file =
                 reportService.exportReport(request);
 
+        String fileName =
+                request.getFormat() == ExportFormat.PDF
+                        ? "Bookings.pdf"
+                        : "Bookings.xlsx";
+
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=Bookings.xlsx"
+                        "attachment; filename=" + fileName
                 )
                 .contentType(
                         MediaType.parseMediaType(

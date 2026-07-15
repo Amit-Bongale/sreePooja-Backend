@@ -6,6 +6,9 @@ import com.example.sreepooja.Enum.Report.ReportType;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.Repository.Bookings.BookingRepository;
 import com.example.sreepooja.Specification.BookingSpecification;
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -35,7 +39,132 @@ public class BookingReportGenerator
             ExportReportRequest request
     ) {
 
-        return new byte[0];
+        Specification<Booking> specification =
+                BookingSpecification.filterBookings(request);
+
+        List<Booking> bookings =
+                bookingRepository.findAll(specification);
+
+        try (
+                ByteArrayOutputStream outputStream =
+                        new ByteArrayOutputStream()
+        ) {
+
+            Document document =
+                    new Document(PageSize.A4.rotate());
+
+            PdfWriter.getInstance(
+                    document,
+                    outputStream
+            );
+
+            document.open();
+
+            Font titleFont = new Font(
+                    Font.HELVETICA,
+                    18,
+                    Font.BOLD
+            );
+
+            Paragraph title = new Paragraph(
+                    "SreePooja",
+                    titleFont
+            );
+
+            title.setAlignment(Element.ALIGN_CENTER);
+
+            document.add(title);
+
+            Font headingFont = new Font(
+                    Font.HELVETICA,
+                    14,
+                    Font.BOLD
+            );
+
+            Paragraph heading = new Paragraph(
+                    "Booking Report",
+                    headingFont
+            );
+
+            heading.setAlignment(Element.ALIGN_CENTER);
+
+            heading.setSpacingAfter(20);
+
+            document.add(heading);
+
+            Paragraph generatedOn = new Paragraph(
+                    "Generated On : " + LocalDate.now()
+            );
+
+            generatedOn.setSpacingAfter(20);
+
+            document.add(generatedOn);
+
+            PdfPTable table = new PdfPTable(8);
+
+            table.setWidthPercentage(100);
+
+            table.setSpacingBefore(10);
+
+            table.addCell("Booking No");
+            table.addCell("Customer");
+            table.addCell("Mobile");
+            table.addCell("Pooja");
+            table.addCell("Preferred Date");
+            table.addCell("Priest");
+            table.addCell("Status");
+            table.addCell("Amount");
+
+            for (Booking booking : bookings) {
+
+                table.addCell(
+                        booking.getBookingNumber()
+                );
+
+                table.addCell(
+                        booking.getUser().getFirstName() + " " +
+                                booking.getUser().getLastName()
+                );
+
+                table.addCell(
+                        booking.getUser().getMobileNo()
+                );
+
+                table.addCell(
+                        booking.getService().getServiceName()
+                );
+
+                table.addCell(
+                        booking.getPreferredDate().toString()
+                );
+
+                table.addCell(
+                        booking.getPriest() != null
+                                ? booking.getPriest().getUser().getFirstName() + " " + booking.getPriest().getUser().getLastName()
+                                : "-"
+                );
+
+                table.addCell(
+                        booking.getBookingStatus().name()
+                );
+
+                table.addCell(
+                        booking.getTotalAmount().toString()
+                );
+            }
+
+            document.add(table);
+
+            document.close();
+
+            return outputStream.toByteArray();
+
+        } catch (Exception e) {
+
+            throw new BadRequestException(
+                    "Unable to generate PDF report."
+            );
+        }
     }
 
     @Override
