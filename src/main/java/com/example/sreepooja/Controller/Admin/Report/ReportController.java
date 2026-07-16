@@ -27,24 +27,31 @@ public class ReportController {
             ExportReportRequest request
     ) {
 
-        byte[] file =
-                reportService.exportReport(request);
+        byte[] file = reportService.exportReport(request);
+
+        String extension =
+                request.getFormat() == ExportFormat.PDF
+                        ? "pdf"
+                        : "xlsx";
 
         String fileName =
+                request.getType().name().toLowerCase()
+                        + "_report."
+                        + extension;
+
+        MediaType mediaType =
                 request.getFormat() == ExportFormat.PDF
-                        ? "Bookings.pdf"
-                        : "Bookings.xlsx";
+                        ? MediaType.APPLICATION_PDF
+                        : MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                );
 
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=" + fileName
                 )
-                .contentType(
-                        MediaType.parseMediaType(
-                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                )
+                .contentType(mediaType)
                 .body(file);
     }
 }
