@@ -36,4 +36,8 @@ public interface PaymentRepository
     );
 
     List<Payments> findByBookingIdOrderByCreatedAtAsc(Long bookingId);
+
+    List<Payments> findByBookingIdInOrderByBookingIdAscCreatedAtAsc(
+            List<Long> bookingIds
+    );
 }

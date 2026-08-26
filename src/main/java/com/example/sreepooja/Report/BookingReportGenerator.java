@@ -2,11 +2,14 @@ package com.example.sreepooja.Report;
 
 import com.example.sreepooja.DTO.Request.Report.ExportReportRequest;
 import com.example.sreepooja.Entity.Bookings.Booking;
+import com.example.sreepooja.Entity.Payments;
 import com.example.sreepooja.Enum.Report.ReportType;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.Repository.Bookings.BookingRepository;
+import com.example.sreepooja.Repository.PaymentRepository;
 import com.example.sreepooja.Specification.BookingSpecification;
 import com.lowagie.text.*;
+import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
@@ -28,6 +33,7 @@ public class BookingReportGenerator
         implements ReportGenerator {
 
     private final BookingRepository bookingRepository;
+    private final PaymentRepository paymentRepository;
 
     @Override
     public ReportType getSupportedReport() {
@@ -45,6 +51,29 @@ public class BookingReportGenerator
         List<Booking> bookings =
                 bookingRepository.findAll(specification);
 
+        /*
+         * Fetch all payments in one query.
+         * Avoids N+1 queries while generating the report.
+         */
+        List<Long> bookingIds = bookings.stream()
+                .map(Booking::getId)
+                .toList();
+
+        Map<Long, List<Payments>> paymentsByBookingId =
+                bookingIds.isEmpty()
+                        ? Map.of()
+                        : paymentRepository
+                        .findByBookingIdInOrderByBookingIdAscCreatedAtAsc(
+                                bookingIds
+                        )
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        payment ->
+                                                payment.getBooking().getId()
+                                )
+                        );
+
         try (
                 ByteArrayOutputStream outputStream =
                         new ByteArrayOutputStream()
@@ -60,20 +89,31 @@ public class BookingReportGenerator
 
             document.open();
 
+            // -------------------------------------------------
+            // Title
+            // -------------------------------------------------
+
             Font titleFont = new Font(
                     Font.HELVETICA,
                     18,
                     Font.BOLD
             );
 
-            Paragraph title = new Paragraph(
-                    "SreePooja",
-                    titleFont
+            Paragraph title =
+                    new Paragraph(
+                            "SreePooja",
+                            titleFont
+                    );
+
+            title.setAlignment(
+                    Element.ALIGN_CENTER
             );
 
-            title.setAlignment(Element.ALIGN_CENTER);
-
             document.add(title);
+
+            // -------------------------------------------------
+            // Heading
+            // -------------------------------------------------
 
             Font headingFont = new Font(
                     Font.HELVETICA,
@@ -81,75 +121,222 @@ public class BookingReportGenerator
                     Font.BOLD
             );
 
-            Paragraph heading = new Paragraph(
-                    "Booking Report",
-                    headingFont
-            );
+            Paragraph heading =
+                    new Paragraph(
+                            "Booking Report",
+                            headingFont
+                    );
 
-            heading.setAlignment(Element.ALIGN_CENTER);
+            heading.setAlignment(
+                    Element.ALIGN_CENTER
+            );
 
             heading.setSpacingAfter(20);
 
             document.add(heading);
 
-            Paragraph generatedOn = new Paragraph(
-                    "Generated On : " + LocalDate.now()
-            );
+            // -------------------------------------------------
+            // Generated On
+            // -------------------------------------------------
+
+            Paragraph generatedOn =
+                    new Paragraph(
+                            "Generated On : "
+                                    + LocalDate.now()
+                    );
 
             generatedOn.setSpacingAfter(20);
 
             document.add(generatedOn);
 
-            PdfPTable table = new PdfPTable(8);
+            // -------------------------------------------------
+            // Table
+            // -------------------------------------------------
+
+            PdfPTable table = new PdfPTable(13);
 
             table.setWidthPercentage(100);
-
             table.setSpacingBefore(10);
 
-            table.addCell("Booking No");
-            table.addCell("Customer");
-            table.addCell("Mobile");
-            table.addCell("Pooja");
-            table.addCell("Preferred Date");
-            table.addCell("Priest");
-            table.addCell("Status");
-            table.addCell("Amount");
+            table.addCell(createHeaderCell("Booking No"));
+            table.addCell(createHeaderCell("Customer"));
+            table.addCell(createHeaderCell("Mobile"));
+            table.addCell(createHeaderCell("Pooja"));
+            table.addCell(createHeaderCell("Pooja Date"));
+            table.addCell(createHeaderCell("Priest"));
+            table.addCell(createHeaderCell("Booking Status"));
+            table.addCell(createHeaderCell("Payment Status"));
+            table.addCell(createHeaderCell("Total Amount"));
+            table.addCell(createHeaderCell("Amount Paid"));
+            table.addCell(createHeaderCell("Balance Amount"));
+            table.addCell(createHeaderCell("Transaction ID 1"));
+            table.addCell(createHeaderCell("Transaction ID 2"));
+
+            // -------------------------------------------------
+            // Rows
+            // -------------------------------------------------
 
             for (Booking booking : bookings) {
 
+                // Customer
+
+                String customerName =
+                        booking.getUser().getFirstName()
+                                + " "
+                                + (
+                                booking.getUser().getLastName() == null
+                                        ? ""
+                                        : booking.getUser().getLastName()
+                        );
+
+                // Priest
+
+                String priestName = "-";
+
+                if (booking.getPriest() != null) {
+
+                    priestName =
+                            booking.getPriest().getUser().getFirstName()
+                                    + " "
+                                    + (
+                                    booking.getPriest()
+                                            .getUser()
+                                            .getLastName() == null
+                                            ? ""
+                                            : booking.getPriest()
+                                            .getUser()
+                                            .getLastName()
+                            );
+
+                    priestName = priestName.trim();
+                }
+
+                // Pooja Date
+
+                String poojaDate =
+                        booking.getConfirmedDate() != null
+                                ? booking.getConfirmedDate()
+                                + " (confirmed)"
+                                : booking.getPreferredDate()
+                                + " (preferred)";
+
+                // Payments
+
+                List<Payments> payments =
+                        paymentsByBookingId.getOrDefault(
+                                booking.getId(),
+                                List.of()
+                        );
+
+                String transactionId1 = "-";
+                String transactionId2 = "-";
+
+                if (!payments.isEmpty()) {
+
+                    transactionId1 =
+                            payments.get(0)
+                                    .getRazorpayPaymentId();
+
+                    if (transactionId1 == null
+                            || transactionId1.isBlank()) {
+
+                        transactionId1 = "-";
+                    }
+                }
+
+                if (payments.size() > 1) {
+
+                    transactionId2 =
+                            payments.get(1)
+                                    .getRazorpayPaymentId();
+
+                    if (transactionId2 == null
+                            || transactionId2.isBlank()) {
+
+                        transactionId2 = "-";
+                    }
+                }
+
+                // -------------------------------------------------
+                // Add cells
+                // -------------------------------------------------
+
                 table.addCell(
-                        booking.getBookingNumber()
+                        createContentCell(
+                                booking.getBookingNumber()
+                        )
                 );
 
                 table.addCell(
-                        booking.getUser().getFirstName() + " " +
-                                booking.getUser().getLastName()
+                        createContentCell(
+                                customerName.trim()
+                        )
                 );
 
                 table.addCell(
-                        booking.getUser().getMobileNo()
+                        createContentCell(
+                                booking.getUser().getMobileNo()
+                        )
                 );
 
                 table.addCell(
-                        booking.getService().getServiceName()
+                        createContentCell(
+                                booking.getService().getServiceName()
+                        )
                 );
 
                 table.addCell(
-                        booking.getPreferredDate().toString()
+                        createContentCell(
+                                poojaDate
+                        )
                 );
 
                 table.addCell(
-                        booking.getPriest() != null
-                                ? booking.getPriest().getUser().getFirstName() + " " + booking.getPriest().getUser().getLastName()
-                                : "-"
+                        createContentCell(
+                                priestName
+                        )
                 );
 
                 table.addCell(
-                        booking.getBookingStatus().name()
+                        createContentCell(
+                                booking.getBookingStatus().name()
+                        )
                 );
 
                 table.addCell(
-                        booking.getTotalAmount().toString()
+                        createContentCell(
+                                booking.getPaymentStatus().name()
+                        )
+                );
+
+                table.addCell(
+                        createContentCell(
+                                booking.getTotalAmount().toString()
+                        )
+                );
+
+                table.addCell(
+                        createContentCell(
+                                booking.getAdvanceAmount().toString()
+                        )
+                );
+
+                table.addCell(
+                        createContentCell(
+                                booking.getBalanceAmount().toString()
+                        )
+                );
+
+                table.addCell(
+                        createContentCell(
+                                transactionId1
+                        )
+                );
+
+                table.addCell(
+                        createContentCell(
+                                transactionId2
+                        )
                 );
             }
 
@@ -178,6 +365,26 @@ public class BookingReportGenerator
         List<Booking> bookings =
                 bookingRepository.findAll(specification);
 
+        List<Long> bookingIds = bookings.stream()
+                .map(Booking::getId)
+                .toList();
+
+        Map<Long, List<Payments>> paymentsByBookingId =
+                bookingIds.isEmpty()
+                        ? Map.of()
+                        : paymentRepository
+                        .findByBookingIdInOrderByBookingIdAscCreatedAtAsc(
+                                bookingIds
+                        )
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        payment ->
+                                                payment.getBooking().getId()
+                                )
+                        );
+
+
         try (
                 Workbook workbook = new XSSFWorkbook();
                 ByteArrayOutputStream outputStream =
@@ -194,10 +401,14 @@ public class BookingReportGenerator
             header.createCell(2).setCellValue("Mobile Number");
             header.createCell(3).setCellValue("Priest");
             header.createCell(4).setCellValue("Pooja");
-            header.createCell(5).setCellValue("Preferred Date");
+            header.createCell(5).setCellValue("Pooja Date");
             header.createCell(6).setCellValue("Booking Status");
             header.createCell(7).setCellValue("Payment Status");
             header.createCell(8).setCellValue("Total Amount");
+            header.createCell(9).setCellValue("Advance Amount");
+            header.createCell(10).setCellValue("Balance Amount");
+            header.createCell(11).setCellValue("Transaction ID 1");
+            header.createCell(12).setCellValue("Transaction ID 2");
             int rowNumber = 1;
 
             for (Booking booking : bookings) {
@@ -233,7 +444,9 @@ public class BookingReportGenerator
 
                 row.createCell(5)
                         .setCellValue(
-                                booking.getPreferredDate().toString()
+                                booking.getConfirmedDate() != null
+                                ? booking.getConfirmedDate() + " (confirmed)"
+                                        : booking.getPreferredDate() +" (preferred)"
                         );
 
                 row.createCell(6)
@@ -250,9 +463,58 @@ public class BookingReportGenerator
                         .setCellValue(
                                 booking.getTotalAmount().doubleValue()
                         );
+
+                row.createCell(9)
+                        .setCellValue(
+                                booking.getAdvanceAmount().doubleValue()
+                        );
+
+                row.createCell(10)
+                        .setCellValue(
+                                booking.getBalanceAmount().doubleValue()
+                        );
+
+                List<Payments> payments =
+                        paymentsByBookingId.getOrDefault(
+                                booking.getId(),
+                                List.of()
+                        );
+
+                String transactionId1 = "-";
+                String transactionId2 = "-";
+
+                if (!payments.isEmpty()) {
+
+                    transactionId1 =
+                            payments.get(0).getRazorpayPaymentId();
+
+                    if (transactionId1 == null
+                            || transactionId1.isBlank()) {
+
+                        transactionId1 = "-";
+                    }
+                }
+
+                if (payments.size() > 1) {
+
+                    transactionId2 =
+                            payments.get(1).getRazorpayPaymentId();
+
+                    if (transactionId2 == null
+                            || transactionId2.isBlank()) {
+
+                        transactionId2 = "-";
+                    }
+                }
+
+                row.createCell(11)
+                        .setCellValue(transactionId1);
+
+                row.createCell(12)
+                        .setCellValue(transactionId2);
             }
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 13; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -267,6 +529,45 @@ public class BookingReportGenerator
             );
         }
 
+    }
+
+    private PdfPCell createHeaderCell(String value) {
+
+        Font font = new Font(
+                Font.HELVETICA,
+                8,
+                Font.BOLD
+        );
+
+        PdfPCell cell =
+                new PdfPCell(
+                        new Phrase(value, font)
+                );
+
+        cell.setPadding(4);
+
+        return cell;
+    }
+
+    private PdfPCell createContentCell(String value) {
+
+        Font font = new Font(
+                Font.HELVETICA,
+                7,
+                Font.NORMAL
+        );
+
+        PdfPCell cell =
+                new PdfPCell(
+                        new Phrase(
+                                value != null ? value : "-",
+                                font
+                        )
+                );
+
+        cell.setPadding(3);
+
+        return cell;
     }
 
 }
