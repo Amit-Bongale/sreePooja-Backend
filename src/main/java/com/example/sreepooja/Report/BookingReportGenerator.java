@@ -3,6 +3,7 @@ package com.example.sreepooja.Report;
 import com.example.sreepooja.DTO.Request.Report.ExportReportRequest;
 import com.example.sreepooja.Entity.Bookings.Booking;
 import com.example.sreepooja.Entity.Payments;
+import com.example.sreepooja.Enum.Bookings.PaymentStatus;
 import com.example.sreepooja.Enum.Report.ReportType;
 import com.example.sreepooja.ExceptionHandlers.BadRequestException;
 import com.example.sreepooja.Repository.Bookings.BookingRepository;
@@ -22,9 +23,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -257,6 +260,23 @@ public class BookingReportGenerator
                     }
                 }
 
+                BigDecimal amountPaid =
+                        payments.stream()
+                                .filter(payment ->
+                                        payment.getStatus() == PaymentStatus.PARTIALLY_PAID
+                                                || payment.getStatus() == PaymentStatus.PAID
+                                )
+                                .map(Payments::getAmount)
+                                .filter(Objects::nonNull)
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal balanceAmount =
+                        booking.getTotalAmount()
+                                .subtract(amountPaid);
+
                 // -------------------------------------------------
                 // Add cells
                 // -------------------------------------------------
@@ -317,13 +337,13 @@ public class BookingReportGenerator
 
                 table.addCell(
                         createContentCell(
-                                booking.getAdvanceAmount().toString()
+                                amountPaid.toString()
                         )
                 );
 
                 table.addCell(
                         createContentCell(
-                                booking.getBalanceAmount().toString()
+                                balanceAmount.toString()
                         )
                 );
 
@@ -405,7 +425,7 @@ public class BookingReportGenerator
             header.createCell(6).setCellValue("Booking Status");
             header.createCell(7).setCellValue("Payment Status");
             header.createCell(8).setCellValue("Total Amount");
-            header.createCell(9).setCellValue("Advance Amount");
+            header.createCell(9).setCellValue("Amount Paid");
             header.createCell(10).setCellValue("Balance Amount");
             header.createCell(11).setCellValue("Transaction ID 1");
             header.createCell(12).setCellValue("Transaction ID 2");
@@ -464,20 +484,37 @@ public class BookingReportGenerator
                                 booking.getTotalAmount().doubleValue()
                         );
 
-                row.createCell(9)
-                        .setCellValue(
-                                booking.getAdvanceAmount().doubleValue()
-                        );
-
-                row.createCell(10)
-                        .setCellValue(
-                                booking.getBalanceAmount().doubleValue()
-                        );
-
                 List<Payments> payments =
                         paymentsByBookingId.getOrDefault(
                                 booking.getId(),
                                 List.of()
+                        );
+
+                BigDecimal amountPaid =
+                        payments.stream()
+                                .filter(payment ->
+                                        payment.getStatus() == PaymentStatus.PARTIALLY_PAID
+                                                || payment.getStatus() == PaymentStatus.PAID
+                                )
+                                .map(Payments::getAmount)
+                                .filter(Objects::nonNull)
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal balanceAmount =
+                        booking.getTotalAmount()
+                                .subtract(amountPaid);
+
+                row.createCell(9)
+                        .setCellValue(
+                                amountPaid.doubleValue()
+                        );
+
+                row.createCell(10)
+                        .setCellValue(
+                                balanceAmount.doubleValue()
                         );
 
                 String transactionId1 = "-";
